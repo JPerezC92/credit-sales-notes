@@ -1,0 +1,17 @@
+export enum EnvVariablesEnum {
+	TURSO_CONNECTION_URL = 'TURSO_CONNECTION_URL',
+	TURSO_AUTH_TOKEN = 'TURSO_AUTH_TOKEN',
+	DATABASE_NAME = 'DATABASE_NAME',
+	JWT_ACCESSS_TOKEN_SECRET = 'JWT_ACCESSS_TOKEN_SECRET',
+	JWT_REFRESH_TOKEN_SECRET = 'JWT_REFRESH_TOKEN_SECRET',
+}
+
+export const envVariables: Record<EnvVariablesEnum, string> = {
+	TURSO_CONNECTION_URL: process.env.TURSO_CONNECTION_URL ?? '',
+	TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN ?? '',
+	DATABASE_NAME: process.env.DATABASE_NAME ?? '',
+	JWT_ACCESSS_TOKEN_SECRET: process.env.JWT_ACCESSS_TOKEN_SECRET ?? '',
+	JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET ?? '',
+} as const;
+
+export type EnvVariables = Record<EnvVariablesEnum, string>;
