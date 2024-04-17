@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  db:
+    container_name: fiaditos
+    image: postgres:16.1
+    restart: always
+    environment:
+      POSTGRES_DB: fiaditos-db
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - '5432:5432'
+
+  db-test:
+    container_name: fiaditos-test
+    image: postgres:16.1
+    restart: always
+    environment:
+      POSTGRES_DB: fiaditos-db-test
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - '5433:5433'
+    expose:
+    - "5433"
+    command: -p 5433
