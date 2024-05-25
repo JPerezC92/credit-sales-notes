@@ -6,7 +6,9 @@ export const errorResponseSchema = extendApi(
 	z.object({
 		statusCode: z.number().describe('number'),
 		message: z.string(),
-		code: z.string(),
+		error: z.string(),
+		path: z.string(),
+		createAt: z.string(),
 	}),
 	{
 		title: 'ErrorResponse',
@@ -14,30 +16,19 @@ export const errorResponseSchema = extendApi(
 		example: {
 			statusCode: 'number',
 			message: 'string',
-			code: 'string',
+			error: 'string',
+			path: 'string',
+			createAt: 'string',
 		},
 	},
 );
 
+export type ErrorResponseSchema = typeof errorResponseSchema;
 export class ErrorResponse extends createZodDto(errorResponseSchema) {}
 
-export function dynamicErrorResponseSchema(code: number) {
-	const errorResponseSchema = extendApi(
-		z.object({
-			statusCode: z.number().describe('number'),
-			message: z.string(),
-			code: z.string(),
-		}),
-		{
-			title: 'ErrorResponse',
-			description: 'Error response',
-			example: {
-				statusCode: code,
-				message: 'string',
-				code: 'string',
-			},
-		},
-	);
-
-	return class extends createZodDto(errorResponseSchema) {};
+type AnatineSchemaObject = Parameters<typeof extendApi>[1] & {
+	example: ErrorResponse;
+};
+export function createErrorResponseSchema(schemaObject?: AnatineSchemaObject) {
+	return extendApi(errorResponseSchema, schemaObject);
 }

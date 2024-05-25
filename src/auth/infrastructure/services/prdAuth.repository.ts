@@ -1,22 +1,20 @@
 import { eq } from 'drizzle-orm';
 
-import type { AuthRepository } from '@/auth/domain/auth.repository';
-import { authUserDbToDomainAdapter } from '@/auth/infrastructure/adapters';
+import { type AuthRepository, type AuthUser } from '@/auth/domain';
+import {
+	authUserDbToDomainAdapter,
+	authUserDomainToDbAdapter,
+} from '@/auth/infrastructure/adapters';
 import { authUserDb } from '@/db/schemas';
-import type { TX } from '@/db/services';
+import { TX } from '@/db/services';
+import { RepositoryError } from '@/shared/domain';
 
-export function prdAuthRepository(tx: TX): AuthRepository {
-	return {
-		async saveUser(user) {
-			await tx.insert(authUserDb).values({
-				authUserId: user.authUserId,
-				userId: user.userId,
-				password: user.password,
-				token: Object.fromEntries(user.token),
-			});
-		},
-		async findUserByEmail(email) {
-			const result = await tx.query.usersDb.findFirst({
+export class PrdAuthRepository implements AuthRepository {
+	constructor(private readonly tx: TX) {}
+
+	async findUserByEmail(email: string): Promise<AuthUser | null> {
+		try {
+			const result = await this.tx.query.usersDb.findFirst({
 				where: (users, { eq }) => eq(users.email, email),
 				with: { authUser: true },
 			});
@@ -24,15 +22,32 @@ export function prdAuthRepository(tx: TX): AuthRepository {
 			if (!result) return null;
 
 			return authUserDbToDomainAdapter(result.authUser, result.email);
-		},
+		} catch (error) {
+			throw new RepositoryError(error);
+		}
+	}
 
-		async updateUserToken(user) {
-			await tx
+	async saveAuthUser(user: AuthUser): Promise<void> {
+		try {
+			await this.tx
+				.insert(authUserDb)
+				.values(authUserDomainToDbAdapter(user));
+		} catch (error) {
+			throw new RepositoryError(error);
+		}
+	}
+
+	async updateAuthUser(user: AuthUser): Promise<void> {
+		try {
+			await this.tx
 				.update(authUserDb)
 				.set({
+					...user,
 					token: Object.fromEntries(user.token),
 				})
 				.where(eq(authUserDb.userId, user.userId));
-		},
-	};
+		} catch (error) {
+			throw new RepositoryError(error);
+		}
+	}
 }

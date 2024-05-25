@@ -4,12 +4,13 @@ import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
 import {
-	AccessTokenCipher,
 	AuthService,
 	BcryptPasswordCipher,
-	RefreshTokenCipher,
+	JwtAccessTokenCipher,
+	JwtRefreshTokenCipher,
 } from '@/auth/infrastructure/services';
 import { DatabaseModule } from '@/db/database.module';
+import { SharedModule } from '@/shared/infrastructure/shared.module';
 
 describe('AuthService', () => {
 	let service: AuthService;
@@ -19,10 +20,10 @@ describe('AuthService', () => {
 			providers: [
 				AuthService,
 				BcryptPasswordCipher,
-				AccessTokenCipher,
-				RefreshTokenCipher,
+				JwtAccessTokenCipher,
+				JwtRefreshTokenCipher,
 			],
-			imports: [DatabaseModule, ConfigModule, JwtModule],
+			imports: [DatabaseModule, ConfigModule, JwtModule, SharedModule],
 		}).compile();
 
 		service = module.get<AuthService>(AuthService);

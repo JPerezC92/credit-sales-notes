@@ -2,6 +2,6 @@ import type { AuthUser } from './authUser.model';
 
 export interface AuthRepository {
 	findUserByEmail: (email: string) => Promise<AuthUser | null>;
-	saveUser: (user: AuthUser) => Promise<void>;
-	updateUserToken: (user: AuthUser) => Promise<void>;
+	saveAuthUser: (user: AuthUser) => Promise<void>;
+	updateAuthUser: (user: AuthUser) => Promise<void>;
 }

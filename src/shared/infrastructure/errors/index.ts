@@ -1,1 +1,1 @@
-export * from './errorMapper';
+export * from './exceptionMapper';

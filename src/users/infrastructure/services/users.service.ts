@@ -2,11 +2,11 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 
 import {
 	BcryptPasswordCipher,
-	prdAuthRepository,
+	PrdAuthRepository,
 } from '@/auth/infrastructure/services';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import { DomainError } from '@/shared/domain';
-import { mapExceptionToHttpError } from '@/shared/infrastructure/errors';
+import { ExceptionMapper } from '@/shared/infrastructure/errors';
 import { UserCreator } from '@/users/application';
 import { UserEmailAlreadyRegisteredError } from '@/users/domain';
 import { userModelToEndpoint } from '@/users/infrastructure/adapters';
@@ -18,6 +18,7 @@ export class UsersService {
 	constructor(
 		@Inject(DrizzleClientToken) private readonly db: DrizzleClient,
 		private readonly passwordCipher: BcryptPasswordCipher,
+		private readonly exceptionMapper: ExceptionMapper,
 	) {}
 
 	async create(
@@ -27,7 +28,7 @@ export class UsersService {
 			async tx =>
 				await UserCreator(
 					this.passwordCipher,
-					prdAuthRepository(tx),
+					new PrdAuthRepository(tx),
 					prdUserRepository(tx),
 					userModelToEndpoint,
 				).exec(userCreateDto),
@@ -35,9 +36,12 @@ export class UsersService {
 
 		if (!DomainError.isInstance(result)) return result;
 
-		const httpError = mapExceptionToHttpError([
-			[UserEmailAlreadyRegisteredError.name, ConflictException],
-		]).find(result);
+		const httpError = this.exceptionMapper.mapDomainErrorToHttpException(
+			result,
+			{
+				[UserEmailAlreadyRegisteredError.code]: ConflictException,
+			},
+		);
 
 		throw httpError();
 	}
