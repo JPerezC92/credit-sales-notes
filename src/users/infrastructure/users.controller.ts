@@ -1,5 +1,5 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs';
-import { Body, Controller, Post, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, UseFilters, UsePipes } from '@nestjs/common';
 import {
 	ApiConflictResponse,
 	ApiCreatedResponse,
@@ -7,6 +7,7 @@ import {
 	ApiTags,
 } from '@nestjs/swagger';
 
+import { RepositoryExceptionFilter } from '@/shared/infrastructure/filters';
 import * as sharedSchemas from '@/shared/infrastructure/schemas';
 import * as userSchemas from '@/users/infrastructure/schemas';
 import { UsersService } from '@/users/infrastructure/services';
@@ -23,7 +24,8 @@ export class UsersController {
 	@ApiInternalServerErrorResponse({
 		type: sharedSchemas.InternalServerError,
 	})
-	async login(@Body() userCreateDto: userSchemas.UserCreateDto) {
+	@UseFilters(RepositoryExceptionFilter)
+	async register(@Body() userCreateDto: userSchemas.UserCreateDto) {
 		return await this.usersService.create(userCreateDto);
 	}
 }

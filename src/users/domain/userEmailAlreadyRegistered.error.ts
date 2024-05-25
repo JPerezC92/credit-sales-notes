@@ -1,7 +1,8 @@
 import { DomainError } from '@/shared/domain';
 
 export class UserEmailAlreadyRegisteredError extends DomainError {
-	readonly code = 'USER_EMAIL_ALREADY_REGISTERED';
+	static readonly code = 'USER_EMAIL_ALREADY_REGISTERED';
+	readonly code = UserEmailAlreadyRegisteredError.code;
 	readonly name = UserEmailAlreadyRegisteredError.name;
 	readonly message: string;
 

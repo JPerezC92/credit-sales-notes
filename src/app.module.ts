@@ -6,9 +6,10 @@ import { UsersModule } from '@/users/infrastructure/users.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { SharedModule } from './shared/infrastructure/shared.module';
 
 @Module({
-	imports: [AuthModule, UsersModule, DatabaseModule],
+	imports: [AuthModule, UsersModule, DatabaseModule, SharedModule],
 	controllers: [AppController],
 	providers: [AppService],
 })

@@ -2,7 +2,7 @@ import { mock } from 'jest-mock-extended';
 
 import { type AuthRepository } from '@/auth/domain';
 import { BcryptPasswordCipher } from '@/auth/infrastructure/services';
-import { AuthUserMother } from '@/test/auth/infrastructure/fixtures';
+import { AuthUserMother } from '@/test/auth/infrastructure/mothers';
 import { UserMother } from '@/test/users/domain';
 import type { UserCreatorProps } from '@/users/application';
 import { UserCreator } from '@/users/application';
@@ -17,8 +17,8 @@ describe('UserCreator Use Case', () => {
 		jest.clearAllMocks();
 	});
 
-	it('should create a new user', async () => {
-		// GIVEN
+	it('should create a new user when valid data is provided', async () => {
+		// Given a new user
 		const newUser = UserMother.create();
 		const newAuthUser = await AuthUserMother.create();
 
@@ -31,23 +31,23 @@ describe('UserCreator Use Case', () => {
 			password: newAuthUser.password,
 		};
 
-		// WHEN
-		const result = await UserCreator(
+		// When creating a new user
+		const user = await UserCreator(
 			new BcryptPasswordCipher(),
 			mockAuthRepository,
 			mockUsersRepository,
 			result => result,
 		).exec(userNewProps);
 
-		// THEN
-		expect(result).toBeInstanceOf(User);
+		// Then the user should be created
+		expect(user).toBeInstanceOf(User);
 		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
 		expect(mockUsersRepository.save).toHaveBeenCalledTimes(1);
-		expect(mockAuthRepository.saveUser).toHaveBeenCalledTimes(1);
+		expect(mockAuthRepository.saveAuthUser).toHaveBeenCalledTimes(1);
 	});
 
-	it('should throw an error if the user already exists', async () => {
-		// GIVEN
+	it('should throw an error when trying to create a user that already exists', async () => {
+		// Given a user that already exists
 		const newUser = UserMother.create();
 		const newAuthUser = await AuthUserMother.create();
 
@@ -62,18 +62,18 @@ describe('UserCreator Use Case', () => {
 			password: newAuthUser.password,
 		};
 
-		// WHEN
-		const result = await UserCreator(
+		// When attempting to create a new user
+		const error = await UserCreator(
 			new BcryptPasswordCipher(),
 			mockAuthRepository,
 			mockUsersRepository,
 			result => result,
 		).exec(userNewProps);
 
-		// THEN
-		expect(result).toBeInstanceOf(UserEmailAlreadyRegisteredError);
+		// Then an UserEmailAlreadyRegisteredError should be thrown
+		expect(error).toBeInstanceOf(UserEmailAlreadyRegisteredError);
 		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
 		expect(mockUsersRepository.save).toHaveBeenCalledTimes(0);
-		expect(mockAuthRepository.saveUser).toHaveBeenCalledTimes(0);
+		expect(mockAuthRepository.saveAuthUser).toHaveBeenCalledTimes(0);
 	});
 });

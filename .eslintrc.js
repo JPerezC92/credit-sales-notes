@@ -27,6 +27,7 @@ module.exports = {
 		'@typescript-eslint/explicit-function-return-type': 'off',
 		'@typescript-eslint/explicit-module-boundary-types': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
+		'@typescript-eslint/prefer-promise-reject-errors': 'off',
 
 		// imports
 		'simple-import-sort/imports': 'error',
@@ -64,4 +65,14 @@ module.exports = {
 			},
 		],
 	},
+	overrides: [
+		{
+			files: ['test/**'],
+			plugins: ['jest'],
+			rules: {
+				'@typescript-eslint/unbound-method': 'off',
+				'jest/unbound-method': 'error',
+			},
+		},
+	],
 };

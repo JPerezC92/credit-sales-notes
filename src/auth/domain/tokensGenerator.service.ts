@@ -1,37 +1,50 @@
 import * as crypto from 'node:crypto';
 
 import type {
-	AccessPayload,
+	AccessTokenCipher,
 	AuthRepository,
-	RefreshPayload,
-	TokenCipher,
+	RefreshTokenCipher,
 } from '@/auth/domain';
-import { AuthUser } from '@/auth/domain';
+import {
+	AccessTokenCiphrationError,
+	AuthUser,
+	RefreshTokenCiphrationError,
+} from '@/auth/domain';
+
+import { AuthToken } from './authToken';
 
 export async function TokensGeneratorService(
-	accessTokenCipher: TokenCipher<AccessPayload>,
-	refreshTokenCipher: TokenCipher<RefreshPayload>,
+	accessTokenCipher: AccessTokenCipher,
+	refreshTokenCipher: RefreshTokenCipher,
 	authRepository: AuthRepository,
 	user: AuthUser,
 	ip: string,
 ) {
 	const tokenId = crypto.randomUUID();
-	const _user = new AuthUser(structuredClone(user));
-
-	_user.addToken(ip, tokenId);
+	const _authUser = new AuthUser(structuredClone(user)).addToken(ip, tokenId);
 
 	const refreshToken = refreshTokenCipher.encode({
-		email: user.email,
+		email: _authUser.email,
 		tokenId,
 	});
 
-	await authRepository.updateUserToken(_user);
+	if (RefreshTokenCiphrationError.isInstance(refreshToken)) {
+		return refreshToken;
+	}
 
-	return {
+	const accessToken = accessTokenCipher.encode({
+		email: _authUser.email,
+		userId: _authUser.userId,
+	});
+
+	if (AccessTokenCiphrationError.isInstance(accessToken)) {
+		return accessToken;
+	}
+
+	await authRepository.updateAuthUser(_authUser);
+
+	return new AuthToken({
 		refreshToken,
-		accessToken: accessTokenCipher.encode({
-			email: user.email,
-			userId: user.userId,
-		}),
-	};
+		accessToken,
+	});
 }

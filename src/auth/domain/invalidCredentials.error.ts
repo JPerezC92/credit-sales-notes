@@ -1,7 +1,8 @@
 import { DomainError } from '@/shared/domain';
 
 export class InvalidCredentialsError extends DomainError {
-	readonly code = 'INVALID_CREDENTIALS';
+	static readonly code = 'INVALID_CREDENTIALS';
+	readonly code = InvalidCredentialsError.code;
 	readonly name = InvalidCredentialsError.name;
 	readonly message = 'Invalid credentials';
 

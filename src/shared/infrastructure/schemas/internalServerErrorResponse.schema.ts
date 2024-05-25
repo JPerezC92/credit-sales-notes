@@ -1,20 +1,20 @@
 import { createZodDto } from '@anatine/zod-nestjs';
-import { extendApi } from '@anatine/zod-openapi';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-import { errorResponseSchema } from './errorResponse.schema';
+import { createErrorResponseSchema } from './errorResponse.schema';
 
-const internalServerErrorSchema = extendApi<typeof errorResponseSchema>(
-	errorResponseSchema,
-	{
-		title: 'InternalServerErrorResponse',
-		description: 'When an unexpected error occurs.',
-		example: {
-			statusCode: 500,
-			message: 'Internal server error',
-			code: 'INTERNAL_SERVER_ERROR',
-		},
+const internalServerErrorSchema = createErrorResponseSchema({
+	title: 'InternalServerErrorResponse',
+	description:
+		'Represents a response when an unexpected error occurs on the server.',
+	example: {
+		statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+		message: 'An unexpected error occurred on the server.',
+		error: ReasonPhrases.INTERNAL_SERVER_ERROR,
+		path: 'Endpoint path',
+		createAt: 'Date',
 	},
-);
+});
 
 export class InternalServerError extends createZodDto(
 	internalServerErrorSchema,

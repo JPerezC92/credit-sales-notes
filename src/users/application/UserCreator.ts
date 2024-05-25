@@ -1,5 +1,10 @@
-import type { AuthRepository, PasswordCipher } from '@/auth/domain';
-import { AuthUser } from '@/auth/domain';
+import { AuthUserCreator } from '@/auth/application';
+import {
+	type AuthRepository,
+	type AuthUser,
+	type PasswordCipher,
+} from '@/auth/domain';
+import { rawResultAdapter } from '@/shared/application';
 import type { UserNewProps, UsersRepository } from '@/users/domain';
 import { User, UserEmailAlreadyRegisteredError } from '@/users/domain';
 
@@ -23,19 +28,17 @@ export function UserCreator<UseCaseResult>(
 
 			const user = User.new(props);
 
-			const authUser = await AuthUser.new(
-				{
-					password: props.password,
-					userId: user.userId,
-					email: user.email,
-				},
+			const authUser = AuthUserCreator(
+				authRepository,
 				passwordCipher,
-			);
+				rawResultAdapter,
+			).exec({
+				email: user.email,
+				password: props.password,
+				userId: user.userId,
+			});
 
-			await Promise.all([
-				authRepository.saveUser(authUser),
-				usersRepository.save(user),
-			]);
+			await Promise.all([authUser, usersRepository.save(user)]);
 
 			return resultAdapter(user);
 		},

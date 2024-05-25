@@ -1,10 +1,9 @@
 import type {
-	AccessPayload,
+	AccessTokenCipher,
 	AuthRepository,
 	Credentials,
 	PasswordCipher,
-	RefreshPayload,
-	TokenCipher,
+	RefreshTokenCipher,
 } from '@/auth/domain';
 import {
 	InvalidCredentialsError,
@@ -14,8 +13,8 @@ import {
 
 export function Authenticathor(
 	passwordCipher: PasswordCipher,
-	accessTokenCipher: TokenCipher<AccessPayload>,
-	refreshTokenCipher: TokenCipher<RefreshPayload>,
+	accessTokenCipher: AccessTokenCipher,
+	refreshTokenCipher: RefreshTokenCipher,
 	authRepository: AuthRepository,
 ) {
 	return {

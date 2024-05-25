@@ -1,21 +1,20 @@
 import { createZodDto } from '@anatine/zod-nestjs';
-import { extendApi } from '@anatine/zod-openapi';
-import { HttpStatus } from '@nestjs/common';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-import { errorResponseSchema } from './errorResponse.schema';
+import { createErrorResponseSchema } from './errorResponse.schema';
 
-export const unprocessableEntity = extendApi<typeof errorResponseSchema>(
-	errorResponseSchema,
-	{
-		title: 'UnprocessableEntityResponse',
-		description:
-			'When the request is valid but the server cannot process it.',
-		example: {
-			statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-			message: 'Unprocessable Entity',
-			code: 'UNPROCESSABLE_ENTITY',
-		},
+export const unprocessableEntity = createErrorResponseSchema({
+	title: 'UnprocessableEntityResponse',
+	description:
+		'The server cannot process the request due to semantic errors.',
+	example: {
+		statusCode: StatusCodes.UNPROCESSABLE_ENTITY,
+		message:
+			'The server cannot process the request due to semantic errors.',
+		error: ReasonPhrases.UNPROCESSABLE_ENTITY,
+		path: 'Endpoint path',
+		createAt: 'Date',
 	},
-);
+});
 
 export class UnprocessableEntity extends createZodDto(unprocessableEntity) {}

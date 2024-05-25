@@ -1,14 +1,11 @@
 import * as crypto from 'node:crypto';
 
+import type { Properties } from '@/shared/domain/types';
+
 import type { PasswordCipher } from './password.cipher';
 
-interface AuthUserProps {
-	authUserId: string;
-	email: string;
-	token: Map<string, string>;
-	password: string;
-	userId: string;
-}
+export type AuthUserProps = Properties<AuthUser>;
+export type AuthUserNewProps = Omit<AuthUserProps, 'token' | 'authUserId'>;
 
 export class AuthUser {
 	public readonly authUserId: string;
@@ -22,10 +19,11 @@ export class AuthUser {
 		this.authUserId = props.authUserId;
 		this.userId = props.userId;
 		this.password = props.password;
+		this.email = props.email;
 	}
 
 	static async new(
-		props: Omit<AuthUserProps, 'token' | 'authUserId'>,
+		props: AuthUserNewProps,
 		passwordCipher: PasswordCipher,
 	): Promise<AuthUser> {
 		return new AuthUser({
@@ -36,11 +34,24 @@ export class AuthUser {
 		});
 	}
 
-	addToken(ip: string, tokenId: string): void {
-		this.token.set(ip, tokenId);
+	addToken(ip: string, tokenId: string): AuthUser {
+		return new AuthUser({
+			...this,
+			token: new Map(this.token).set(ip, tokenId),
+		});
 	}
 
-	removeToken(ip: string): void {
-		this.token.delete(ip);
+	removeToken(ip: string): AuthUser {
+		const token = new Map(this.token);
+		token.delete(ip);
+
+		return new AuthUser({
+			...this,
+			token,
+		});
+	}
+
+	static isInstance(obj: unknown): obj is AuthUser {
+		return obj instanceof AuthUser;
 	}
 }
