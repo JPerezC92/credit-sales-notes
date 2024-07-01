@@ -13,18 +13,19 @@ import {
 	AccessTokenCiphrationError,
 	InvalidCredentialsError,
 	RefreshTokenCiphrationError,
-} from '@/auth/domain';
+} from '@/auth/domain/error';
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import {
 	JwtAccessTokenCipher,
 	JwtRefreshTokenCipher,
 	PrdAuthRepository,
 } from '@/auth/infrastructure/services';
+import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
+import { authorizationExpected } from '@/test/auth/domain';
 import { badRequestErrorExpected } from '@/test/auth/infrastructure/fixtures';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
-import { credentials1 } from '@/test/users/infrastructure/fixtures';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
@@ -52,10 +53,7 @@ describe('AuthController (e2e)', () => {
 
 		// Then the response should be an Ok with the accessToken and refreshToken
 		expect(response.status).toBe(HttpStatus.OK);
-		expect(response.body).toEqual({
-			accessToken: expect.any(String),
-			refreshToken: expect.any(String),
-		});
+		expect(response.body).toEqual(authorizationExpected);
 	});
 
 	it('should return 400 Bad Request when the email is not valid', async () => {

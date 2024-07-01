@@ -12,7 +12,7 @@ const internalServerErrorSchema = createErrorResponseSchema({
 		message: 'An unexpected error occurred on the server.',
 		error: ReasonPhrases.INTERNAL_SERVER_ERROR,
 		path: 'Endpoint path',
-		createAt: 'Date',
+		createdAt: 'Date',
 	},
 });
 

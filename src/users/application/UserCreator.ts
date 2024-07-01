@@ -6,7 +6,8 @@ import {
 } from '@/auth/domain';
 import { rawResultAdapter } from '@/shared/application';
 import type { UserNewProps, UsersRepository } from '@/users/domain';
-import { User, UserEmailAlreadyRegisteredError } from '@/users/domain';
+import { User } from '@/users/domain';
+import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
 
 export type UserCreatorProps = UserNewProps & {
 	password: AuthUser['password'];
@@ -32,13 +33,16 @@ export function UserCreator<UseCaseResult>(
 				authRepository,
 				passwordCipher,
 				rawResultAdapter,
-			).exec({
-				email: user.email,
-				password: props.password,
-				userId: user.userId,
-			});
+			);
 
-			await Promise.all([authUser, usersRepository.save(user)]);
+			await Promise.all([
+				authUser.exec({
+					email: user.email,
+					password: props.password,
+					userId: user.userId,
+				}),
+				usersRepository.save(user),
+			]);
 
 			return resultAdapter(user);
 		},

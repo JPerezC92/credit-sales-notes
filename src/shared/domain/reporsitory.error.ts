@@ -1,7 +1,7 @@
-import { DomainError } from '@/shared/domain';
+import { DomainError, ErrorCodesEnum } from '@/shared/domain';
 
 export class RepositoryError extends DomainError {
-	static readonly code = 'REPOSITORY_ERROR';
+	static readonly code = ErrorCodesEnum.REPOSITORY_ERROR;
 	readonly code = RepositoryError.code;
 	readonly name = RepositoryError.name;
 	readonly message = 'An error occurred while accessing the information.';

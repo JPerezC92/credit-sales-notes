@@ -5,13 +5,14 @@ import type {
 	AuthRepository,
 	RefreshTokenCipher,
 } from '@/auth/domain';
+import { AuthUser } from '@/auth/domain';
 import {
 	AccessTokenCiphrationError,
-	AuthUser,
 	RefreshTokenCiphrationError,
-} from '@/auth/domain';
+} from '@/auth/domain/error';
+import { BearerToken, TypelessToken } from '@/auth/domain/token.model';
 
-import { AuthToken } from './authToken';
+import { Authorization } from './authorization';
 
 export async function TokensGeneratorService(
 	accessTokenCipher: AccessTokenCipher,
@@ -43,8 +44,8 @@ export async function TokensGeneratorService(
 
 	await authRepository.updateAuthUser(_authUser);
 
-	return new AuthToken({
-		refreshToken,
-		accessToken,
+	return new Authorization({
+		refreshToken: new TypelessToken(refreshToken),
+		accessToken: new BearerToken(accessToken),
 	});
 }

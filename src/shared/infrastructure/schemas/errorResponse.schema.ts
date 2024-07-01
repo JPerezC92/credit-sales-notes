@@ -8,7 +8,7 @@ export const errorResponseSchema = extendApi(
 		message: z.string(),
 		error: z.string(),
 		path: z.string(),
-		createAt: z.string(),
+		createdAt: z.string(),
 	}),
 	{
 		title: 'ErrorResponse',
@@ -18,7 +18,7 @@ export const errorResponseSchema = extendApi(
 			message: 'string',
 			error: 'string',
 			path: 'string',
-			createAt: 'string',
+			createdAt: 'string',
 		},
 	},
 );

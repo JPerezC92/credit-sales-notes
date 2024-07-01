@@ -5,11 +5,11 @@ import { mock } from 'jest-mock-extended';
 
 import { UserInfo } from '@/auth/application/UserInfo';
 import type { AuthRepository } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
+import { AuthUserMother, UserMother } from '@/db/mothers';
 import { rawResultAdapter } from '@/shared/application';
-import { AuthUserMother } from '@/test/auth/infrastructure/mothers';
-import { UserMother } from '@/test/users/domain';
-import { UserNotFoundError, type UsersRepository } from '@/users/domain';
+import { type UsersRepository } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 
 const mockAuthRepository = mock<AuthRepository>();
 const mockUsersRepository = mock<UsersRepository>();

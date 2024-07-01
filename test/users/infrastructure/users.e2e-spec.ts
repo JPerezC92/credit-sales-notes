@@ -15,7 +15,7 @@ import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { userCreateDtoMother } from '@/test/users/infrastructure/fixtures';
-import { UserEmailAlreadyRegisteredError } from '@/users/domain';
+import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
 import type {
 	UserCreateDto,
 	UserEndpointDto,

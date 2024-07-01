@@ -12,7 +12,7 @@ export const badRequest = createErrorResponseSchema({
 		message: 'The request is malformed or invalid.',
 		error: ReasonPhrases.BAD_REQUEST,
 		path: 'Endpoint path',
-		createAt: 'Date',
+		createdAt: 'Date',
 	},
 });
 

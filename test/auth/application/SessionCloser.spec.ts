@@ -8,8 +8,8 @@ import { mock } from 'jest-mock-extended';
 
 import { SessionCloser } from '@/auth/application';
 import type { AuthRepository } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain';
-import { AuthUserMother } from '@/test/auth/infrastructure/mothers';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
+import { AuthUserMother } from '@/db/mothers';
 
 const mockAuthRepository = mock<AuthRepository>();
 

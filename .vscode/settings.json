@@ -1,3 +1,7 @@
 {
-    "remote.autoForwardPortsFallback": 0
+    "remote.autoForwardPortsFallback": 0,
+    "exportall.config.relExclusion": [
+        "/src/auth/domain/error",
+        "/src/users/domain/errors"
+    ]
 }

@@ -1,7 +1,7 @@
 import type { AuthRepository, AuthUser } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
 import type { User, UsersRepository } from '@/users/domain';
-import { UserNotFoundError } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 
 export function UserInfo<UseCaseResult>(
 	authRepository: AuthRepository,

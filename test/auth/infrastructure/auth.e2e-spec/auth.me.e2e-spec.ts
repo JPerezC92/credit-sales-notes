@@ -8,13 +8,13 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import supertest from 'supertest';
 import type { App } from 'supertest/types';
 
-import { AuthUserNotFoundError } from '@/auth/domain';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
+import { credentials1, userTest1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
-import { credentials1, userTest1 } from '@/test/users/infrastructure/fixtures';
 import type { UserEndpointDto } from '@/users/infrastructure/schemas';
 
 describe('AuthController (e2e)', () => {
@@ -46,7 +46,7 @@ describe('AuthController (e2e)', () => {
 		// When making a request to the me endpoint with a valid accessToken
 		await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/me')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.OK)
 			.then(response => {
 				// Then the response should be an Ok with the user data
@@ -94,7 +94,7 @@ describe('AuthController (e2e)', () => {
 		// When making a request to the me endpoint and the user is not found
 		await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/me')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.NOT_FOUND)
 			.then(response =>
 				// Then the response should be a Not Found
@@ -123,7 +123,7 @@ describe('AuthController (e2e)', () => {
 		// When making a request to the me endpoint and a RepositoryError is thrown
 		await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/me')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response =>
 				// Then the response should be an Internal Server Error

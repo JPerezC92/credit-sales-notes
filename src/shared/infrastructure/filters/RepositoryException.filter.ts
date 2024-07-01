@@ -17,7 +17,7 @@ export class RepositoryExceptionFilter implements ExceptionFilter {
 			error: RepositoryError.code,
 			message: exception.message,
 			statusCode: status,
-			createAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
 			path: request.url,
 		};
 

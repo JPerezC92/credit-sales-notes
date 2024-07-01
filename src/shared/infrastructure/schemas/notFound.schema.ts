@@ -11,7 +11,7 @@ export const notFound = createErrorResponseSchema({
 		message: 'The requested resource was not found.',
 		error: ReasonPhrases.NOT_FOUND,
 		path: 'Endpoint path',
-		createAt: 'Date',
+		createdAt: 'Date',
 	},
 });
 
