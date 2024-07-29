@@ -18,12 +18,12 @@ import {
 	AuthUserNotFoundError,
 	InvalidCredentialsError,
 	RefreshTokenCiphrationError,
-} from '@/auth/domain';
+} from '@/auth/domain/error';
 import type * as authSchemas from '@/auth/infrastructure/schemas';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import { DomainError } from '@/shared/domain';
 import { ExceptionMapper } from '@/shared/infrastructure/errors';
-import { UserNotFoundError } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 import { userModelToEndpoint } from '@/users/infrastructure/adapters';
 import { prdUserRepository } from '@/users/infrastructure/repositories';
 

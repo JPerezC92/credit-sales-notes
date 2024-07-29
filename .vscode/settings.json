@@ -1,3 +1,9 @@
 {
-    "remote.autoForwardPortsFallback": 0
+    "remote.autoForwardPortsFallback": 0,
+    "exportall.config.relExclusion": [
+        "/src/auth/domain/error",
+        "/src/users/domain/errors",
+        "/src/db/schemas/shared.db.ts",
+        "/src/db/utils/db.ts"
+    ]
 }

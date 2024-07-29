@@ -64,6 +64,7 @@ module.exports = {
 				disallowTypeAnnotations: true,
 			},
 		],
+		'@typescript-eslint/no-unsafe-argument': 'off',
 	},
 	overrides: [
 		{

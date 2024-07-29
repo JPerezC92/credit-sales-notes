@@ -8,13 +8,13 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import supertest from 'supertest';
 import type { App } from 'supertest/types';
 
-import { AuthUserNotFoundError } from '@/auth/domain';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
+import { authUser1, credentials1, userTest1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
-import { credentials1, userTest1 } from '@/test/users/infrastructure/fixtures';
 import type { UserEndpointDto } from '@/users/infrastructure/schemas';
 
 describe('AuthController (e2e)', () => {
@@ -46,7 +46,7 @@ describe('AuthController (e2e)', () => {
 		// When making a request to the me endpoint with a valid accessToken
 		await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/me')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.OK)
 			.then(response => {
 				// Then the response should be an Ok with the user data
@@ -59,6 +59,8 @@ describe('AuthController (e2e)', () => {
 					lastNameTwo: expect.any(String),
 					createdAt: expect.any(String),
 					modifiedAt: expect.any(String),
+					roles: expect.any(Array),
+					actions: expect.any(Array),
 				});
 			});
 	});
@@ -86,25 +88,24 @@ describe('AuthController (e2e)', () => {
 			.post('/api/v1/auth')
 			.send(credentials1);
 
-		jest.spyOn(
-			PrdAuthRepository.prototype,
-			'findUserByEmail',
-		).mockResolvedValue(null);
+		jest.spyOn(PrdAuthRepository.prototype, 'findUserByEmail')
+			.mockResolvedValueOnce(authUser1)
+			.mockResolvedValueOnce(null);
 
 		// When making a request to the me endpoint and the user is not found
 		await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/me')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.NOT_FOUND)
-			.then(response =>
+			.then(response => {
 				// Then the response should be a Not Found
 				expect(response.body).toEqual(
 					ErrorResponseExpected.create({
 						statusCode: HttpStatus.NOT_FOUND,
 						error: AuthUserNotFoundError.code,
 					}),
-				),
-			);
+				);
+			});
 	});
 
 	it('should return 500 Internal Server Error when a RepositoryError is thrown', async () => {
@@ -118,12 +119,12 @@ describe('AuthController (e2e)', () => {
 		jest.spyOn(
 			PrdAuthRepository.prototype,
 			'findUserByEmail',
-		).mockRejectedValueOnce(new RepositoryError('Error'));
+		).mockRejectedValueOnce(new RepositoryError('Test Error'));
 
 		// When making a request to the me endpoint and a RepositoryError is thrown
 		await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/me')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response =>
 				// Then the response should be an Internal Server Error

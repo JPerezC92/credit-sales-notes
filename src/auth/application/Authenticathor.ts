@@ -5,11 +5,8 @@ import type {
 	PasswordCipher,
 	RefreshTokenCipher,
 } from '@/auth/domain';
-import {
-	InvalidCredentialsError,
-	PasswordVerifierService,
-	TokensGeneratorService,
-} from '@/auth/domain';
+import { PasswordVerifierService, TokensGeneratorService } from '@/auth/domain';
+import { InvalidCredentialsError } from '@/auth/domain/error';
 
 export function Authenticathor(
 	passwordCipher: PasswordCipher,

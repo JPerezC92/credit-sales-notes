@@ -1,5 +1,5 @@
 import type { AuthRepository, AuthUser } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
 
 export function SessionCloser(authRepository: AuthRepository) {
 	return {

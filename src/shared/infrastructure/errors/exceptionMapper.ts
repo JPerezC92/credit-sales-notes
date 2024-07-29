@@ -35,7 +35,7 @@ export class ExceptionMapper {
 					message: 'An unexpected error occurred',
 					statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
 					path: this.request.url,
-					createAt: new Date().toISOString(),
+					createdAt: new Date().toISOString(),
 				} satisfies ErrorResponse);
 		}
 
@@ -50,7 +50,7 @@ export class ExceptionMapper {
 				message: error.message,
 				statusCode: new Exception().getStatus(),
 				path: this.request.url,
-				createAt: new Date().toISOString(),
+				createdAt: new Date().toISOString(),
 			} satisfies ErrorResponse);
 	}
 }

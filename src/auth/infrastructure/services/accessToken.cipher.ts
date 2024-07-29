@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import type { AccessPayload, AccessTokenCipher } from '@/auth/domain';
-import { AccessTokenCiphrationError } from '@/auth/domain';
+import { AccessTokenCiphrationError } from '@/auth/domain/error';
 import type { EnvVariables } from '@/shared/infrastructure/utils';
 import { EnvVariablesEnum } from '@/shared/infrastructure/utils';
 

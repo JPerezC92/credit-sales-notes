@@ -1,7 +1,11 @@
-import type { UsersDb } from '@/db/schemas';
+import type { ActionDb, RoleDb, UsersDb } from '@/db/schemas';
 import { User } from '@/users/domain';
 
-export function userDbToDomain(user: UsersDb): User {
+export function userDbToDomain(
+	user: UsersDb,
+	roles: Array<RoleDb['roleId']>,
+	actions: Array<ActionDb['actionId']>,
+): User {
 	return new User({
 		userId: user.userId,
 		firstNameOne: user.firstNameOne,
@@ -11,5 +15,7 @@ export function userDbToDomain(user: UsersDb): User {
 		email: user.email,
 		createdAt: user.createdAt,
 		modifiedAt: user.modifiedAt,
+		roles,
+		actions,
 	});
 }

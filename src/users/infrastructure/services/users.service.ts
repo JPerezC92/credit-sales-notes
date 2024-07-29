@@ -8,7 +8,7 @@ import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import { DomainError } from '@/shared/domain';
 import { ExceptionMapper } from '@/shared/infrastructure/errors';
 import { UserCreator } from '@/users/application';
-import { UserEmailAlreadyRegisteredError } from '@/users/domain';
+import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
 import { userModelToEndpoint } from '@/users/infrastructure/adapters';
 import { prdUserRepository } from '@/users/infrastructure/repositories';
 import type * as userSchemas from '@/users/infrastructure/schemas';
@@ -44,13 +44,5 @@ export class UsersService {
 		);
 
 		throw httpError();
-	}
-
-	async findByEmail(
-		email: string,
-	): Promise<userSchemas.UserEndpointDto | null> {
-		return await this.db.transaction(
-			async tx => await prdUserRepository(tx).findByEmail(email),
-		);
 	}
 }

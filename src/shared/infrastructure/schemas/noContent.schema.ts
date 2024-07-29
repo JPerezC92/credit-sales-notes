@@ -12,7 +12,7 @@ export const noContentSchema = createErrorResponseSchema({
 		message: 'The request has succeeded but has no content to return.',
 		error: ReasonPhrases.NO_CONTENT,
 		path: 'Endpoint path',
-		createAt: 'Date',
+		createdAt: 'Date',
 	},
 });
 

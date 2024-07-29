@@ -9,20 +9,21 @@ import { mock } from 'jest-mock-extended';
 import { SessionRevalidator } from '@/auth/application';
 import type {
 	AccessTokenCipher,
+	Authorization,
 	AuthRepository,
-	AuthToken,
 	RefreshTokenCipher,
 } from '@/auth/domain';
 import {
 	AccessTokenCiphrationError,
 	AuthUserNotFoundError,
 	RefreshTokenCiphrationError,
-} from '@/auth/domain';
+} from '@/auth/domain/error';
 import {
 	JwtAccessTokenCipher,
 	JwtRefreshTokenCipher,
 } from '@/auth/infrastructure/services';
-import { AuthUserMother } from '@/test/auth/infrastructure/mothers';
+import { AuthUserMother } from '@/db/mothers';
+import { authorizationExpected } from '@/test/auth/domain/authorization.expected';
 
 const mockAuthRepository = mock<AuthRepository>();
 const mockAccessTokenCipher = mock<AccessTokenCipher>();
@@ -47,10 +48,7 @@ describe('SessionRevalidator Use Case', () => {
 		).exec(authUser.email, faker.internet.ipv4());
 
 		// Then the session is revalidated and the user is updated
-		expect(result).toEqual<AuthToken>({
-			accessToken: expect.any(String),
-			refreshToken: expect.any(String),
-		});
+		expect(result).toEqual<Authorization>(authorizationExpected);
 		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
 		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
 			authUser.email,

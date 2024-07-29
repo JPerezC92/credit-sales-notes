@@ -17,16 +17,13 @@ import {
 	AccessTokenCiphrationError,
 	InvalidCredentialsError,
 	RefreshTokenCiphrationError,
-} from '@/auth/domain';
+} from '@/auth/domain/error';
 import {
 	BcryptPasswordCipher,
 	JwtAccessTokenCipher,
 	JwtRefreshTokenCipher,
 } from '@/auth/infrastructure/services';
-import {
-	AuthUserMother,
-	CredentialsMother,
-} from '@/test/auth/infrastructure/mothers';
+import { AuthUserMother, CredentialsMother } from '@/db/mothers';
 
 const mockAuthRepository = mock<AuthRepository>();
 
@@ -57,8 +54,13 @@ describe('Authenticathor Use Case', () => {
 
 		// Then an access token and a refresh token are returned
 		expect(result).toEqual({
-			refreshToken: expect.any(String),
-			accessToken: expect.any(String),
+			refreshToken: expect.objectContaining({
+				value: expect.any(String),
+			}),
+			accessToken: expect.objectContaining({
+				value: expect.any(String),
+				type: 'Bearer',
+			}),
 		});
 		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
 		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(

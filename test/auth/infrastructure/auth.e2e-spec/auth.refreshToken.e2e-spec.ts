@@ -11,10 +11,11 @@ import type { App } from 'supertest/types';
 
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
+import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
+import { authorizationExpected } from '@/test/auth/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
-import { credentials1 } from '@/test/users/infrastructure/fixtures';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
@@ -46,19 +47,16 @@ describe('AuthController (e2e)', () => {
 		// When the refreshToken is valid
 		const response = await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/refresh-token')
-			.set('x-refresh-token', `${refreshToken}`)
+			.set('x-refresh-token', `${refreshToken.value}`)
 			.expect(HttpStatus.OK);
 
 		// Then the response should be an Ok with a new accessToken and refreshToken
-		expect(response.body).toEqual({
-			accessToken: expect.any(String),
-			refreshToken: expect.any(String),
-		});
+		expect(response.body).toEqual(authorizationExpected);
 
 		// When the refreshToken is used again
 		const secondResponse = await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/refresh-token')
-			.set('x-refresh-token', `${refreshToken}`)
+			.set('x-refresh-token', `${refreshToken.value}`)
 			.expect(HttpStatus.UNAUTHORIZED);
 
 		// Then the response should be an Unauthorized
@@ -81,12 +79,12 @@ describe('AuthController (e2e)', () => {
 		jest.spyOn(
 			PrdAuthRepository.prototype,
 			'findUserByEmail',
-		).mockRejectedValue(new RepositoryError('Error'));
+		).mockRejectedValue(new RepositoryError('Test Error'));
 
 		// When the refreshToken is used
 		const response = await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/refresh-token')
-			.set('x-refresh-token', `${refreshToken}`)
+			.set('x-refresh-token', `${refreshToken.value}`)
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR);
 
 		// Then the response should be an Internal Server Error

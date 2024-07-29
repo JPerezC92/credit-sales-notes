@@ -2,11 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import {
-	type RefreshPayload,
-	type RefreshTokenCipher,
-	RefreshTokenCiphrationError,
-} from '@/auth/domain';
+import { type RefreshPayload, type RefreshTokenCipher } from '@/auth/domain';
+import { RefreshTokenCiphrationError } from '@/auth/domain/error';
 import type { EnvVariables } from '@/shared/infrastructure/utils';
 import { EnvVariablesEnum } from '@/shared/infrastructure/utils';
 

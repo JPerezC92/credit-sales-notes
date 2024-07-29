@@ -10,10 +10,10 @@ import type { App } from 'supertest/types';
 
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
+import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
-import { credentials1 } from '@/test/users/infrastructure/fixtures';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
@@ -44,13 +44,13 @@ describe('AuthController (e2e)', () => {
 		// When the accessToken is used to logout
 		await supertest(app.getHttpServer() as App)
 			.delete('/api/v1/auth/logout')
-			.set('Authorization', `Bearer ${accessToken}`)
+			.set('Authorization', `Bearer ${accessToken.value}`)
 			.expect(HttpStatus.NO_CONTENT);
 
 		// Then the refreshToken should be invalidated
 		const response = await supertest(app.getHttpServer() as App)
 			.get('/api/v1/auth/refresh-token')
-			.set('x-refresh-token', `${refreshToken}`);
+			.set('x-refresh-token', `${refreshToken.value}`);
 
 		// Then the response should be an Unauthorized
 		expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
@@ -77,7 +77,7 @@ describe('AuthController (e2e)', () => {
 		// When the accessToken is used to logout
 		const response = await supertest(app.getHttpServer() as App)
 			.delete('/api/v1/auth/logout')
-			.set('Authorization', `Bearer ${accessToken}`);
+			.set('Authorization', `Bearer ${accessToken.value}`);
 
 		// Then the response should be an Internal Server Error
 		expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);

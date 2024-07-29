@@ -48,16 +48,14 @@ export class AuthController {
 
 	@Post()
 	@HttpCode(HttpStatus.OK)
-	// #region
-	@ApiOkResponse({ type: authSchemas.AuthTokenDto })
+	@ApiOkResponse({ type: authSchemas.AuthorizationDto })
 	@ApiUnauthorizedResponse({ type: sharedSchemas.Unauthorized })
 	@ApiBadRequestResponse({
 		type: sharedSchemas.BadRequest,
 	})
-	// #endregion
 	async login(
 		@Body() createAuthDto: authSchemas.CredentialsDto,
-	): Promise<authSchemas.AuthTokenDto> {
+	): Promise<authSchemas.AuthorizationDto> {
 		const ip = IP.address();
 
 		return await this.authService.login(createAuthDto, ip);
@@ -66,7 +64,6 @@ export class AuthController {
 	@Get('me')
 	@HttpCode(HttpStatus.OK)
 	@UseGuards(AccessJwtAuthGuard)
-	// #region
 	@ApiBearerAuth()
 	@ApiOkResponse({ type: userSchemas.UserEndpointDto })
 	@ApiUnauthorizedResponse({
@@ -75,7 +72,6 @@ export class AuthController {
 	@ApiNotFoundResponse({
 		type: sharedSchemas.NotFound,
 	})
-	// #endregion
 	async me(
 		@UserFromReq() user: AuthUser,
 	): Promise<userSchemas.UserEndpointDto> {
@@ -85,9 +81,8 @@ export class AuthController {
 	@Get('refresh-token')
 	@UseGuards(RefreshJwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	// #region
 	@ApiHeader({ name: 'x-refresh-token' })
-	@ApiOkResponse({ type: authSchemas.AuthTokenDto })
+	@ApiOkResponse({ type: authSchemas.AuthorizationDto })
 	@ApiInternalServerErrorResponse({
 		type: sharedSchemas.InternalServerError,
 	})
@@ -97,17 +92,15 @@ export class AuthController {
 	@ApiNotFoundResponse({
 		type: sharedSchemas.NotFound,
 	})
-	// #endregion
 	async refreshToken(
 		@UserFromReq() authUser: AuthUser,
-	): Promise<authSchemas.AuthTokenDto> {
+	): Promise<authSchemas.AuthorizationDto> {
 		return await this.authService.refreshToken(authUser, IP.address());
 	}
 
 	@Delete('logout')
 	@UseGuards(AccessJwtAuthGuard)
 	@HttpCode(HttpStatus.NO_CONTENT)
-	// #region
 	@ApiNoContentResponse({
 		type: sharedSchemas.NoContent,
 	})
@@ -118,7 +111,6 @@ export class AuthController {
 		type: sharedSchemas.NotFound,
 	})
 	@ApiBearerAuth()
-	// #endregion
 	async logout(@UserFromReq() user: AuthUser): Promise<void> {
 		await this.authService.logout(user, IP.address());
 	}

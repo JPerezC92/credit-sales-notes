@@ -5,7 +5,7 @@ import {
 	authUserDbToDomainAdapter,
 	authUserDomainToDbAdapter,
 } from '@/auth/infrastructure/adapters';
-import { authUserDb } from '@/db/schemas';
+import * as dbSchemas from '@/db/schemas';
 import { TX } from '@/db/services';
 import { RepositoryError } from '@/shared/domain';
 
@@ -14,12 +14,12 @@ export class PrdAuthRepository implements AuthRepository {
 
 	async findUserByEmail(email: string): Promise<AuthUser | null> {
 		try {
-			const result = await this.tx.query.usersDb.findFirst({
+			const result = await this.tx.query.userDb.findFirst({
 				where: (users, { eq }) => eq(users.email, email),
 				with: { authUser: true },
 			});
 
-			if (!result) return null;
+			if (!result?.authUser) return null;
 
 			return authUserDbToDomainAdapter(result.authUser, result.email);
 		} catch (error) {
@@ -30,7 +30,7 @@ export class PrdAuthRepository implements AuthRepository {
 	async saveAuthUser(user: AuthUser): Promise<void> {
 		try {
 			await this.tx
-				.insert(authUserDb)
+				.insert(dbSchemas.authUserDb)
 				.values(authUserDomainToDbAdapter(user));
 		} catch (error) {
 			throw new RepositoryError(error);
@@ -40,12 +40,12 @@ export class PrdAuthRepository implements AuthRepository {
 	async updateAuthUser(user: AuthUser): Promise<void> {
 		try {
 			await this.tx
-				.update(authUserDb)
+				.update(dbSchemas.authUserDb)
 				.set({
 					...user,
 					token: Object.fromEntries(user.token),
 				})
-				.where(eq(authUserDb.userId, user.userId));
+				.where(eq(dbSchemas.authUserDb.userId, user.userId));
 		} catch (error) {
 			throw new RepositoryError(error);
 		}

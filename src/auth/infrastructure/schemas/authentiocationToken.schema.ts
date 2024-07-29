@@ -2,10 +2,19 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { extendApi } from '@anatine/zod-openapi';
 import { z } from 'zod';
 
-export const AuthTokenSchema = extendApi(
+const typelessTokenSchema = z.object({
+	value: z.string().trim(),
+});
+
+const bearerTokenSchema = z.object({
+	type: z.literal('Bearer'),
+	value: z.string().trim(),
+});
+
+export const AuthorizationSchema = extendApi(
 	z.object({
-		accessToken: z.string().min(1).trim(),
-		refreshToken: z.string().min(1).trim(),
+		accessToken: bearerTokenSchema,
+		refreshToken: typelessTokenSchema,
 	}),
 	{
 		title: 'AuthentiocationTokens',
@@ -13,4 +22,4 @@ export const AuthTokenSchema = extendApi(
 	},
 );
 
-export class AuthTokenDto extends createZodDto(AuthTokenSchema) {}
+export class AuthorizationDto extends createZodDto(AuthorizationSchema) {}

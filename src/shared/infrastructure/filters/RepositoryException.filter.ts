@@ -4,6 +4,7 @@ import type { Response } from 'express';
 
 import { RepositoryError } from '@/shared/domain';
 import type { ErrorResponse } from '@/shared/infrastructure/schemas';
+import { isDevelopment } from '@/shared/infrastructure/utils';
 
 @Catch(RepositoryError)
 export class RepositoryExceptionFilter implements ExceptionFilter {
@@ -17,9 +18,13 @@ export class RepositoryExceptionFilter implements ExceptionFilter {
 			error: RepositoryError.code,
 			message: exception.message,
 			statusCode: status,
-			createAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
 			path: request.url,
 		};
+
+		if (isDevelopment()) {
+			console.log('RepositoryExceptionFilter', body);
+		}
 
 		response.status(status).json(body);
 	}

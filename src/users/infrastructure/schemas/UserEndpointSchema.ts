@@ -11,6 +11,8 @@ export const UserEndpointSchema = extendApi(
 		.object({
 			userId: z.string().uuid(),
 			email: z.string().email(),
+			roles: z.array(z.string()),
+			actions: z.array(z.string()),
 		})
 		.merge(sharedSchemas.timestampSchema)
 		.merge(UserCreate.omit({ password: true })),

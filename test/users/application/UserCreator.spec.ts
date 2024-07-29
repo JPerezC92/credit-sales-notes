@@ -2,12 +2,13 @@ import { mock } from 'jest-mock-extended';
 
 import { type AuthRepository } from '@/auth/domain';
 import { BcryptPasswordCipher } from '@/auth/infrastructure/services';
-import { AuthUserMother } from '@/test/auth/infrastructure/mothers';
+import { AuthUserMother } from '@/db/mothers';
 import { UserMother } from '@/test/users/domain';
 import type { UserCreatorProps } from '@/users/application';
 import { UserCreator } from '@/users/application';
 import type { UsersRepository } from '@/users/domain';
-import { User, UserEmailAlreadyRegisteredError } from '@/users/domain';
+import { User } from '@/users/domain';
+import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
 
 const mockUsersRepository = mock<UsersRepository>();
 const mockAuthRepository = mock<AuthRepository>();

@@ -4,7 +4,8 @@ import type {
 	AuthUser,
 	RefreshTokenCipher,
 } from '@/auth/domain';
-import { AuthUserNotFoundError, TokensGeneratorService } from '@/auth/domain';
+import { TokensGeneratorService } from '@/auth/domain';
+import { AuthUserNotFoundError } from '@/auth/domain/error';
 
 export function SessionRevalidator(
 	authRepository: AuthRepository,

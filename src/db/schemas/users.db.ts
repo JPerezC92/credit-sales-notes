@@ -1,25 +1,28 @@
 import { relations } from 'drizzle-orm';
-import { integer, text } from 'drizzle-orm/sqlite-core';
+import { text } from 'drizzle-orm/sqlite-core';
 
 import { tableCreator } from '@/db/connection';
-import { authUserDb } from '@/db/schemas/authUser.db';
+import { TableNames } from '@/db/utils/tableNames';
 
-export const usersDb = tableCreator('Users', {
+import { authUserDb } from './authUser.db';
+import { personDb, timestampDb } from './shared.db';
+import { userDbToActionDb } from './userAttributeToAction.db';
+import { userDbToRoleDb } from './userAttributeToRole.db';
+
+export const userDb = tableCreator(TableNames.User, {
+	...personDb,
+	...timestampDb,
 	userId: text('userId').primaryKey().notNull().unique(),
-	firstNameOne: text('firstNameOne', { length: 50 }).notNull(),
-	firstNameTwo: text('firstNameTwo', { length: 50 }),
-	lastNameOne: text('lastNameOne', { length: 50 }).notNull(),
-	lastNameTwo: text('lastNameTwo', { length: 50 }),
 	email: text('email', { length: 150 }).unique().notNull(),
-	createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
-	modifiedAt: integer('modifiedAt', { mode: 'timestamp' }).notNull(),
 });
 
-export type UsersDb = typeof usersDb.$inferSelect;
+export type UsersDb = typeof userDb.$inferSelect;
 
-export const usersRelations = relations(usersDb, ({ one }) => ({
+export const usersRelations = relations(userDb, ({ one, many }) => ({
 	authUser: one(authUserDb, {
-		fields: [usersDb.userId],
+		fields: [userDb.userId],
 		references: [authUserDb.userId],
 	}),
+	userToRole: many(userDbToRoleDb),
+	userToAction: many(userDbToActionDb),
 }));

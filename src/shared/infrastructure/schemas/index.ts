@@ -1,5 +1,6 @@
 export * from './badRequest.schemas';
 export * from './errorResponse.schema';
+export * from './forbiddenSchema';
 export * from './internalServerErrorResponse.schema';
 export * from './noContent.schema';
 export * from './notFound.schema';

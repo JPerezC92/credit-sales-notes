@@ -4,7 +4,7 @@ import type { AccessPayload } from './accessPayload';
 import type {
 	AccessTokenCiphrationError,
 	RefreshTokenCiphrationError,
-} from './cipration.error';
+} from './error/cipration.error';
 
 export interface TokenCipher<T> {
 	encode: (payload: T) => unknown;

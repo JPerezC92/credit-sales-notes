@@ -1,7 +1,7 @@
-import { DomainError } from '@/shared/domain';
+import { DomainError, ErrorCodesEnum } from '@/shared/domain';
 
 export class UserEmailAlreadyRegisteredError extends DomainError {
-	static readonly code = 'USER_EMAIL_ALREADY_REGISTERED';
+	static readonly code = ErrorCodesEnum.USERS_EMAIL_ALREADY_REGISTERED;
 	readonly code = UserEmailAlreadyRegisteredError.code;
 	readonly name = UserEmailAlreadyRegisteredError.name;
 	readonly message: string;

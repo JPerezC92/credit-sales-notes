@@ -13,7 +13,7 @@ export const unauthorized = createErrorResponseSchema({
 			'The user is not authenticated or does not have the necessary permissions to access the requested resource.',
 		error: ReasonPhrases.UNAUTHORIZED,
 		path: 'Endpoint path',
-		createAt: 'Date',
+		createdAt: 'Date',
 	},
 });
 

@@ -1,1 +1,1 @@
-export * from './UserMother';
+export * from '../../../src/db/mothers/user.mother';

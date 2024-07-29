@@ -13,7 +13,7 @@ export const unprocessableEntity = createErrorResponseSchema({
 			'The server cannot process the request due to semantic errors.',
 		error: ReasonPhrases.UNPROCESSABLE_ENTITY,
 		path: 'Endpoint path',
-		createAt: 'Date',
+		createdAt: 'Date',
 	},
 });
 
