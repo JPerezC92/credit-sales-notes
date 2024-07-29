@@ -13,6 +13,8 @@ export const UserMother = {
 			email: faker.internet.email(),
 			createdAt: new Date(),
 			modifiedAt: new Date(),
+			roles: [],
+			actions: [],
 			...params,
 		});
 	},

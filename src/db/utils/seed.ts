@@ -1,4 +1,10 @@
-import { usersSeeder } from '@/db/seeders';
+import {
+	actionsSeeder,
+	rolesSeeder,
+	userAtributeToActionSeeder,
+	userAtributeToRoleSeeder,
+	usersSeeder,
+} from '@/db/seeders';
 import { db } from '@/db/utils/db';
 import { isProduction } from '@/shared/infrastructure/utils';
 
@@ -13,7 +19,17 @@ async function seed() {
 		throw new Error('❌ Cannot seed database in production');
 	}
 
-	await Promise.all([usersSeeder()]);
+	const seeders = [
+		usersSeeder,
+		actionsSeeder,
+		rolesSeeder,
+		userAtributeToRoleSeeder,
+		userAtributeToActionSeeder,
+	];
+
+	for (const seeder of seeders) {
+		await seeder();
+	}
 
 	console.log('✅ Database seeded');
 }

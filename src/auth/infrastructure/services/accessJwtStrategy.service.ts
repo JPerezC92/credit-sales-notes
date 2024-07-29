@@ -5,11 +5,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import type { AccessPayload, AuthUser } from '@/auth/domain';
 import * as authSchemas from '@/auth/infrastructure/schemas';
+import { PrdAuthRepository } from '@/auth/infrastructure/services/prdAuth.repository';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import type { EnvVariables } from '@/shared/infrastructure/utils';
 import { EnvVariablesEnum } from '@/shared/infrastructure/utils';
-
-import { AuthUtilsRepository } from './authUtils.repository';
 
 export const accessTokenStrategy = 'AccessTokenStrategy';
 
@@ -38,14 +37,9 @@ export class AccessJwtStrategy extends PassportStrategy(
 			throw new UnauthorizedException();
 		}
 
-		// const result = await this.db.query.usersDb.findFirst({
-		// 	where: (users, { eq }) => eq(users.email, _payload.data.email),
-		// 	with: { authUser: true },
-		// });
-
 		const authUser = await this.db.transaction(
 			async tx =>
-				await new AuthUtilsRepository(tx).findUserByEmail(
+				await new PrdAuthRepository(tx).findUserByEmail(
 					_payload.data.email,
 				),
 		);

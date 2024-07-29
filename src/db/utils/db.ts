@@ -20,4 +20,3 @@ if (isDevelopment() || isTesting()) {
 }
 
 export const db = drizzle(queryClient, { schema });
-// export const db = drizzle(queryClient);

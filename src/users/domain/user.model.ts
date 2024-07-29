@@ -9,6 +9,8 @@ export interface UserProps {
 	email: string;
 	createdAt: Date;
 	modifiedAt: Date;
+	roles: string[];
+	actions: string[];
 }
 
 export type UserNewProps = Pick<
@@ -25,6 +27,8 @@ export class User {
 	public readonly email: string;
 	public readonly createdAt: Date;
 	public readonly modifiedAt: Date;
+	public readonly roles: string[];
+	public readonly actions: string[];
 
 	constructor(props: UserProps) {
 		this.userId = props.userId;
@@ -33,6 +37,8 @@ export class User {
 		this.lastNameOne = props.lastNameOne;
 		this.lastNameTwo = props.lastNameTwo;
 		this.email = props.email;
+		this.roles = props.roles;
+		this.actions = props.actions;
 		this.createdAt = props.createdAt;
 		this.modifiedAt = props.modifiedAt;
 	}
@@ -43,6 +49,8 @@ export class User {
 			userId: crypto.randomUUID(),
 			createdAt: new Date(),
 			modifiedAt: new Date(),
+			roles: [],
+			actions: [],
 		});
 	}
 

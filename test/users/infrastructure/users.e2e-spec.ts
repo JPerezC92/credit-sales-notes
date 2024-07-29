@@ -10,9 +10,12 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 
+import { RoleType } from '@/auth/domain';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
+import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
+import { PrdRolesRepository, Role } from '@/src/roles/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { userCreateDtoMother } from '@/test/users/infrastructure/fixtures';
 import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
@@ -33,6 +36,8 @@ describe('UsersController (e2e)', () => {
 	});
 
 	beforeEach(async () => {
+		jest.clearAllMocks();
+
 		const moduleFixture: TestingModule = await Test.createTestingModule({
 			imports: [UsersModule],
 		}).compile();
@@ -42,16 +47,18 @@ describe('UsersController (e2e)', () => {
 		await app.init();
 	});
 
-	/**
-	 * Test the register endpoint
-	 */
 	it('should create a new user', async () => {
+		// Given authenticated as an admin
+		const response = await request(app.getHttpServer() as App)
+			.post('/api/v1/auth')
+			.send(credentials1);
+
 		// When attempting to create a new user
 		await request(app.getHttpServer() as App)
 			.post('/api/v1/users')
+			.set('Authorization', `Bearer ${response.body.accessToken.value}`)
 			.send(newUser)
 			.expect(HttpStatus.CREATED)
-			// .expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response => {
 				// Then the user should be created successfully
 				expect(response.body).toEqual<UserEndpointDto>({
@@ -63,17 +70,51 @@ describe('UsersController (e2e)', () => {
 					email: newUser.email,
 					createdAt: expect.any(String),
 					modifiedAt: expect.any(String),
+					roles: expect.any(Array),
+					actions: expect.any(Array),
 				});
 			});
 	});
 
-	/**
-	 * Test the register endpoint
-	 */
-	it('should return a conflict error when trying to create a user with an existing email', async () => {
+	it('should not create a user when the user that is trying to register is not an admin', async () => {
+		// Given authenticated
+		const response = await request(app.getHttpServer() as App)
+			.post('/api/v1/auth')
+			.send(credentials1);
+
+		jest.spyOn(
+			PrdRolesRepository.prototype,
+			'findRolesByUserId',
+		).mockResolvedValueOnce([
+			new Role({ roleId: '1', name: RoleType.SELLER }),
+		]);
+
 		// When attempting to create a new user with an existing email
 		await request(app.getHttpServer() as App)
 			.post('/api/v1/users')
+			.set('Authorization', `Bearer ${response.body.accessToken.value}`)
+			.send(newUser)
+			.expect(HttpStatus.FORBIDDEN)
+			.then(response => {
+				// Then a forbidden error should be returned
+				expect(response.body).toEqual(
+					ErrorResponseExpected.create({
+						statusCode: HttpStatus.FORBIDDEN,
+					}),
+				);
+			});
+	});
+
+	it('should return a conflict error when trying to create a user with an existing email', async () => {
+		// Given authenticated as an admin
+		const response = await request(app.getHttpServer() as App)
+			.post('/api/v1/auth')
+			.send(credentials1);
+
+		// When attempting to create a new user with an existing email
+		await request(app.getHttpServer() as App)
+			.post('/api/v1/users')
+			.set('Authorization', `Bearer ${response.body.accessToken.value}`)
 			.send(newUser)
 			.expect(HttpStatus.CONFLICT)
 			.then(response => {
@@ -87,13 +128,16 @@ describe('UsersController (e2e)', () => {
 			});
 	});
 
-	/**
-	 * Test the register endpoint
-	 */
 	it('should return a conflict error when trying to create a user with an existing email', async () => {
+		// Given authenticated as an admin
+		const response = await request(app.getHttpServer() as App)
+			.post('/api/v1/auth')
+			.send(credentials1);
+
 		// When attempting to create a new user with an existing email
 		await request(app.getHttpServer() as App)
 			.post('/api/v1/users')
+			.set('Authorization', `Bearer ${response.body.accessToken.value}`)
 			.send(newUser)
 			.expect(HttpStatus.CONFLICT)
 			.then(response => {
@@ -108,14 +152,20 @@ describe('UsersController (e2e)', () => {
 	});
 
 	it('should return a internal server error when a repository error occurs', async () => {
+		// Given authenticated as an admin
+		const response = await request(app.getHttpServer() as App)
+			.post('/api/v1/auth')
+			.send(credentials1);
+
 		jest.spyOn(
 			PrdAuthRepository.prototype,
 			'saveAuthUser',
-		).mockRejectedValueOnce(new RepositoryError('Error'));
+		).mockRejectedValueOnce(new RepositoryError('Test Error'));
 
 		// When attempting to create a new user with an existing email
 		await request(app.getHttpServer() as App)
 			.post('/api/v1/users')
+			.set('Authorization', `Bearer ${response.body.accessToken.value}`)
 			.send(userCreateDtoMother.create())
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response => {

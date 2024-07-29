@@ -79,7 +79,7 @@ describe('AuthController (e2e)', () => {
 		jest.spyOn(
 			PrdAuthRepository.prototype,
 			'findUserByEmail',
-		).mockRejectedValue(new RepositoryError('Error'));
+		).mockRejectedValue(new RepositoryError('Test Error'));
 
 		// When the refreshToken is used
 		const response = await supertest(app.getHttpServer() as App)

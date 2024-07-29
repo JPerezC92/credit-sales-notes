@@ -25,15 +25,10 @@ import {
 import IP from 'ip';
 
 import { AuthUser } from '@/auth/domain';
-import {
-	Roles,
-	RolesEnum,
-	UserFromReq,
-} from '@/auth/infrastructure/decorators';
+import { UserFromReq } from '@/auth/infrastructure/decorators';
 import {
 	AccessJwtAuthGuard,
 	RefreshJwtAuthGuard,
-	RolesGuard,
 } from '@/auth/infrastructure/guards';
 import * as authSchemas from '@/auth/infrastructure/schemas';
 import { AuthService } from '@/auth/infrastructure/services';
@@ -68,8 +63,7 @@ export class AuthController {
 
 	@Get('me')
 	@HttpCode(HttpStatus.OK)
-	@Roles(RolesEnum.ADMIN)
-	@UseGuards(AccessJwtAuthGuard, RolesGuard)
+	@UseGuards(AccessJwtAuthGuard)
 	@ApiBearerAuth()
 	@ApiOkResponse({ type: userSchemas.UserEndpointDto })
 	@ApiUnauthorizedResponse({

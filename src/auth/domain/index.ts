@@ -6,6 +6,8 @@ export * from './credentials.model';
 export * from './password.cipher';
 export * from './passwordVerifier.service';
 export * from './refreshPayload';
+export * from './role.model';
 export * from './token.cipher';
 export * from './token.model';
 export * from './tokensGenerator.service';
+export * from './userAttribute.model';

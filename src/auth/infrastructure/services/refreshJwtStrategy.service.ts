@@ -41,13 +41,13 @@ export class RefreshJwtStrategy extends PassportStrategy(
 
 		const payloadValidated = payloadValidation.data;
 
-		const result = await this.db.query.usersDb.findFirst({
+		const result = await this.db.query.userDb.findFirst({
 			where: (users, { eq }) =>
 				eq(users.email, payloadValidation.data.email),
 			with: { authUser: true },
 		});
 
-		if (!result) {
+		if (!result?.authUser) {
 			throw new UnauthorizedException();
 		}
 

@@ -50,6 +50,7 @@ describe('AuthController (e2e)', () => {
 		const response = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
 			.send(credentials1);
+		// .catch(err => console.log(err));
 
 		// Then the response should be an Ok with the accessToken and refreshToken
 		expect(response.status).toBe(HttpStatus.OK);
@@ -135,7 +136,7 @@ describe('AuthController (e2e)', () => {
 		jest.spyOn(
 			PrdAuthRepository.prototype,
 			'findUserByEmail',
-		).mockRejectedValueOnce(new RepositoryError('Error'));
+		).mockRejectedValueOnce(new RepositoryError('Test Error'));
 
 		// When the repository throws an error
 		await supertest(app.getHttpServer() as App)
