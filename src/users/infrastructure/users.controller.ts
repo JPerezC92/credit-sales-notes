@@ -15,11 +15,14 @@ import {
 	ApiTags,
 } from '@nestjs/swagger';
 
-import { RoleType } from '@/auth/domain';
 import { Roles } from '@/auth/infrastructure/decorators';
 import { AccessJwtAuthGuard, RolesGuard } from '@/auth/infrastructure/guards';
 import { RepositoryExceptionFilter } from '@/shared/infrastructure/filters';
 import * as sharedSchemas from '@/shared/infrastructure/schemas';
+import { ActionType } from '@/src/actions/domain';
+import { ActionsAllowed } from '@/src/actions/infrastructure/decorators';
+import { ActionsGuard } from '@/src/actions/infrastructure/guards';
+import { RoleType } from '@/src/roles/domain';
 import * as userSchemas from '@/users/infrastructure/schemas';
 import { UsersService } from '@/users/infrastructure/services';
 
@@ -31,7 +34,8 @@ export class UsersController {
 
 	@Post()
 	@Roles(RoleType.ADMIN)
-	@UseGuards(AccessJwtAuthGuard, RolesGuard)
+	@ActionsAllowed(ActionType.WRITE)
+	@UseGuards(AccessJwtAuthGuard, RolesGuard, ActionsGuard)
 	@ApiCreatedResponse({ type: userSchemas.UserEndpointDto })
 	@ApiForbiddenResponse({ type: sharedSchemas.Forbidden })
 	@ApiConflictResponse({ type: sharedSchemas.ErrorResponse })

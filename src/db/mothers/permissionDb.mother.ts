@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 
-import { ActionType } from '@/auth/domain';
 import type { ActionDb } from '@/db/schemas';
+import { ActionType } from '@/src/actions/domain';
 
 export const ActionDbMother = {
 	create(params?: Partial<ActionDb>): ActionDb {

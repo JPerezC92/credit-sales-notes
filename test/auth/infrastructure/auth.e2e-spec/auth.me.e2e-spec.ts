@@ -11,14 +11,28 @@ import type { App } from 'supertest/types';
 import { AuthUserNotFoundError } from '@/auth/domain/error';
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
-import { authUser1, credentials1, userTest1 } from '@/db/seeders';
+import { authUser1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
+import { ActionType } from '@/src/actions/domain';
+import { RoleType } from '@/src/roles/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
+import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
+import type { User } from '@/users/domain';
 import type { UserEndpointDto } from '@/users/infrastructure/schemas';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
+
+	let adminUser: User;
+
+	beforeAll(async () => {
+		adminUser =
+			await new TestUserRepository().findOrCreateUserWithRoleAndAction(
+				RoleType.ADMIN,
+				ActionType.WRITE,
+			);
+	});
 
 	beforeEach(async () => {
 		jest.clearAllMocks();
@@ -41,7 +55,10 @@ describe('AuthController (e2e)', () => {
 			body: { accessToken },
 		} = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		// When making a request to the me endpoint with a valid accessToken
 		await supertest(app.getHttpServer() as App)
@@ -52,7 +69,7 @@ describe('AuthController (e2e)', () => {
 				// Then the response should be an Ok with the user data
 				expect(response.body).toEqual<UserEndpointDto>({
 					userId: expect.any(String),
-					email: userTest1.email,
+					email: adminUser.email,
 					firstNameOne: expect.any(String),
 					firstNameTwo: expect.any(String),
 					lastNameOne: expect.any(String),
@@ -86,7 +103,10 @@ describe('AuthController (e2e)', () => {
 			body: { accessToken },
 		} = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		jest.spyOn(PrdAuthRepository.prototype, 'findUserByEmail')
 			.mockResolvedValueOnce(authUser1)
@@ -114,7 +134,10 @@ describe('AuthController (e2e)', () => {
 			body: { accessToken },
 		} = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		jest.spyOn(
 			PrdAuthRepository.prototype,

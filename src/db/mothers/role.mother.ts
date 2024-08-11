@@ -1,15 +1,14 @@
 import * as crypto from 'node:crypto';
 
-import type { Role2 } from '@/auth/domain';
-import { AttributeType, RoleType } from '@/auth/domain';
+import type { Properties } from '@/shared/domain';
+import { Role, RoleType } from '@/src/roles/domain';
 
 export const RoleMother = {
-	create(params?: Partial<Role2>): Role2 {
-		return {
-			userAttributeId: crypto.randomUUID(),
-			type: AttributeType.rol,
-			value: RoleType.ADMIN,
+	create(params?: Partial<Properties<Role>>): Role {
+		return new Role({
+			roleId: crypto.randomUUID(),
+			name: RoleType.ADMIN,
 			...params,
-		};
+		});
 	},
 };

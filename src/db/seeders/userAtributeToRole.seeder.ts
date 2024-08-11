@@ -1,6 +1,6 @@
-import { RoleType } from '@/auth/domain';
 import * as dbSchemas from '@/db/schemas';
 import { db } from '@/db/utils/db';
+import { RoleType } from '@/src/roles/domain';
 
 export async function userAtributeToRoleSeeder() {
 	console.log('🛠️ Seeding user attribute to role relations');
