@@ -1,6 +1,6 @@
-import { ActionType } from '@/auth/domain';
 import * as dbSchemas from '@/db/schemas';
 import { db } from '@/db/utils/db';
+import { ActionType } from '@/src/actions/domain';
 
 export async function userAtributeToActionSeeder() {
 	console.log('🛠️ Seeding user attribute to action relations');
@@ -12,8 +12,10 @@ export async function userAtributeToActionSeeder() {
 		?.actionId;
 	const deleteId = actions.find(action => action.name === ActionType.DELETE)
 		?.actionId;
+	const writeId = actions.find(action => action.name === ActionType.WRITE)
+		?.actionId;
 
-	if (!viewId || !editId || !deleteId) {
+	if (!viewId || !editId || !deleteId || !writeId) {
 		throw new Error('Actions not found');
 	}
 
@@ -35,6 +37,10 @@ export async function userAtributeToActionSeeder() {
 					{
 						userId: user.userId,
 						actionId: deleteId,
+					},
+					{
+						userId: user.userId,
+						actionId: writeId,
 					},
 				])
 				.flat(),

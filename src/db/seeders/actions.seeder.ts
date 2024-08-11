@@ -1,7 +1,7 @@
-import { ActionType } from '@/auth/domain';
 import { ActionDbMother } from '@/db/mothers';
 import * as dbSchemas from '@/db/schemas';
 import { db } from '@/db/utils/db';
+import { ActionType } from '@/src/actions/domain';
 
 export const actionsSeeder = async () => {
 	console.log('🛠️ Seeding actions');

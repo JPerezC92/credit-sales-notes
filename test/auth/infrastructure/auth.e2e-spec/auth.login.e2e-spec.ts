@@ -20,15 +20,28 @@ import {
 	JwtRefreshTokenCipher,
 	PrdAuthRepository,
 } from '@/auth/infrastructure/services';
-import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
+import { ActionType } from '@/src/actions/domain';
+import { RoleType } from '@/src/roles/domain';
 import { authorizationExpected } from '@/test/auth/domain';
 import { badRequestErrorExpected } from '@/test/auth/infrastructure/fixtures';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
+import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
+import type { User } from '@/users/domain';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
+
+	let adminUser: User;
+
+	beforeAll(async () => {
+		adminUser =
+			await new TestUserRepository().findOrCreateUserWithRoleAndAction(
+				RoleType.ADMIN,
+				ActionType.WRITE,
+			);
+	});
 
 	beforeEach(async () => {
 		jest.clearAllMocks();
@@ -49,7 +62,10 @@ describe('AuthController (e2e)', () => {
 		// When the credentials are valid
 		const response = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 		// .catch(err => console.log(err));
 
 		// Then the response should be an Ok with the accessToken and refreshToken
@@ -72,7 +88,7 @@ describe('AuthController (e2e)', () => {
 		// When the password is not valid
 		await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send({ ...credentials1, password: 'wrong-password' })
+			.send({ email: adminUser.email, password: 'wrong-password' })
 			.expect(HttpStatus.UNAUTHORIZED)
 			.then(response => {
 				// Then the response should be an Unauthorized
@@ -95,7 +111,10 @@ describe('AuthController (e2e)', () => {
 		// When the accessTokenCipher.encode method throws an error
 		await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1)
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			})
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response => {
 				// Then the response should be an Internal Server Error
@@ -118,7 +137,10 @@ describe('AuthController (e2e)', () => {
 		// When the refreshTokenCipher.encode method throws an error
 		await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1)
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			})
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response => {
 				// Then the response should be an Internal Server Error
@@ -141,7 +163,10 @@ describe('AuthController (e2e)', () => {
 		// When the repository throws an error
 		await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1)
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			})
 			.expect(HttpStatus.INTERNAL_SERVER_ERROR)
 			.then(response => {
 				// Then the response should be an Internal Server Error

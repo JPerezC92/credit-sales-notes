@@ -10,13 +10,26 @@ import type { App } from 'supertest/types';
 
 import { AuthModule } from '@/auth/infrastructure/auth.module';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
-import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
+import { ActionType } from '@/src/actions/domain';
+import { RoleType } from '@/src/roles/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
+import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
+import type { User } from '@/users/domain';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
+
+	let adminUser: User;
+
+	beforeAll(async () => {
+		adminUser =
+			await new TestUserRepository().findOrCreateUserWithRoleAndAction(
+				RoleType.ADMIN,
+				ActionType.WRITE,
+			);
+	});
 
 	beforeEach(async () => {
 		jest.clearAllMocks();
@@ -39,7 +52,10 @@ describe('AuthController (e2e)', () => {
 			body: { accessToken, refreshToken },
 		} = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		// When the accessToken is used to logout
 		await supertest(app.getHttpServer() as App)
@@ -66,7 +82,10 @@ describe('AuthController (e2e)', () => {
 			body: { accessToken },
 		} = await supertest(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		// Mock the AuthRepository to throw an error
 		jest.spyOn(

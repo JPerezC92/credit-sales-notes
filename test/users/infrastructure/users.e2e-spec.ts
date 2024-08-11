@@ -10,14 +10,16 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 
-import { RoleType } from '@/auth/domain';
 import { PrdAuthRepository } from '@/auth/infrastructure/services';
-import { credentials1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
-import { PrdRolesRepository, Role } from '@/src/roles/domain';
+import { ActionType } from '@/src/actions/domain';
+import { PrdRolesRepository, Role, RoleType } from '@/src/roles/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { userCreateDtoMother } from '@/test/users/infrastructure/fixtures';
+import { TestUserRepository } from '@/test/users/infrastructure/utils';
+import { config } from '@/test/users/infrastructure/utils/config';
+import type { User } from '@/users/domain';
 import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
 import type {
 	UserCreateDto,
@@ -29,10 +31,18 @@ describe('UsersController (e2e)', () => {
 	let app: INestApplication;
 	let newUser: UserCreateDto;
 
+	let adminUser: User;
+
 	beforeAll(async () => {
 		newUser = userCreateDtoMother.create({
-			password: '123456',
+			password: config.defaultTestUserPassword,
 		});
+
+		adminUser =
+			await new TestUserRepository().findOrCreateUserWithRoleAndAction(
+				RoleType.ADMIN,
+				ActionType.WRITE,
+			);
 	});
 
 	beforeEach(async () => {
@@ -49,9 +59,13 @@ describe('UsersController (e2e)', () => {
 
 	it('should create a new user', async () => {
 		// Given authenticated as an admin
+
 		const response = await request(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		// When attempting to create a new user
 		await request(app.getHttpServer() as App)
@@ -80,7 +94,10 @@ describe('UsersController (e2e)', () => {
 		// Given authenticated
 		const response = await request(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		jest.spyOn(
 			PrdRolesRepository.prototype,
@@ -109,7 +126,10 @@ describe('UsersController (e2e)', () => {
 		// Given authenticated as an admin
 		const response = await request(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		// When attempting to create a new user with an existing email
 		await request(app.getHttpServer() as App)
@@ -132,7 +152,10 @@ describe('UsersController (e2e)', () => {
 		// Given authenticated as an admin
 		const response = await request(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		// When attempting to create a new user with an existing email
 		await request(app.getHttpServer() as App)
@@ -155,7 +178,10 @@ describe('UsersController (e2e)', () => {
 		// Given authenticated as an admin
 		const response = await request(app.getHttpServer() as App)
 			.post('/api/v1/auth')
-			.send(credentials1);
+			.send({
+				email: adminUser.email,
+				password: config.defaultTestUserPassword,
+			});
 
 		jest.spyOn(
 			PrdAuthRepository.prototype,

@@ -1,4 +1,7 @@
-import type { RoleType } from '@/auth/domain';
+export enum RoleType {
+	ADMIN = 'ADMIN',
+	SELLER = 'SELLER',
+}
 
 export interface RoleProps {
 	roleId: string;
