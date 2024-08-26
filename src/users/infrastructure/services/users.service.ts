@@ -1,16 +1,13 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 
-import {
-	BcryptPasswordCipher,
-	PrdAuthRepository,
-} from '@/auth/infrastructure/services';
+import { BcryptPasswordCipher } from '@/auth/infrastructure/services';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import { DomainError } from '@/shared/domain';
 import { ExceptionMapper } from '@/shared/infrastructure/errors';
 import { UserCreator } from '@/users/application';
 import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
 import { userModelToEndpoint } from '@/users/infrastructure/adapters';
-import { prdUserRepository } from '@/users/infrastructure/repositories';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 import type * as userSchemas from '@/users/infrastructure/schemas';
 
 @Injectable()
@@ -28,8 +25,7 @@ export class UsersService {
 			async tx =>
 				await UserCreator(
 					this.passwordCipher,
-					new PrdAuthRepository(tx),
-					prdUserRepository(tx),
+					new PrdUserRepository(tx),
 					userModelToEndpoint,
 				).exec(userCreateDto),
 		);

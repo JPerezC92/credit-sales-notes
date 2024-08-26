@@ -3,12 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import type { AccessPayload, AuthUser } from '@/auth/domain';
+import type { AccessPayload } from '@/auth/domain';
 import * as authSchemas from '@/auth/infrastructure/schemas';
-import { PrdAuthRepository } from '@/auth/infrastructure/services/prdAuth.repository';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import type { EnvVariables } from '@/shared/infrastructure/utils';
 import { EnvVariablesEnum } from '@/shared/infrastructure/utils';
+import type { User } from '@/users/domain';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 
 export const accessTokenStrategy = 'AccessTokenStrategy';
 
@@ -30,24 +31,24 @@ export class AccessJwtStrategy extends PassportStrategy(
 		});
 	}
 
-	async validate(payload: AccessPayload): Promise<AuthUser> {
+	async validate(payload: AccessPayload): Promise<User> {
 		const _payload = authSchemas.accessPayload.safeParse(payload);
 
 		if (!_payload.success) {
 			throw new UnauthorizedException();
 		}
 
-		const authUser = await this.db.transaction(
+		const user = await this.db.transaction(
 			async tx =>
-				await new PrdAuthRepository(tx).findUserByEmail(
+				await new PrdUserRepository(tx).findByEmail(
 					_payload.data.email,
 				),
 		);
 
-		if (!authUser) {
+		if (!user) {
 			throw new UnauthorizedException();
 		}
 
-		return authUser;
+		return user;
 	}
 }

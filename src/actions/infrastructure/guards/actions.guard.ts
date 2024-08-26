@@ -3,15 +3,15 @@ import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-import type { AuthUser } from '@/auth/domain';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import type { ErrorResponse } from '@/shared/infrastructure/schemas';
 import { MetadataKeys } from '@/shared/infrastructure/utils';
 import type { ActionType } from '@/src/actions/domain';
 import { PrdActionsRepository } from '@/src/actions/infrastructure/services';
+import type { User } from '@/users/domain';
 
 interface RequestData {
-	user?: AuthUser;
+	user?: User;
 	url: string;
 }
 
@@ -30,14 +30,14 @@ export class ActionsGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<RequestData>();
 
-		const authUser = request.user;
+		const user = request.user;
 
-		if (!authUser || !actionsAllowed) return false;
+		if (!user || !actionsAllowed) return false;
 
 		const actions = await this.db.transaction(
 			async tx =>
 				await new PrdActionsRepository(tx).findActionsByUserId(
-					authUser.userId,
+					user.userId,
 				),
 		);
 

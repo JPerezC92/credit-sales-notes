@@ -1,7 +1,5 @@
 export * from './accessPayload';
-export * from './auth.repository';
 export * from './authorization';
-export * from './authUser.model';
 export * from './credentials.model';
 export * from './password.cipher';
 export * from './passwordVerifier.service';

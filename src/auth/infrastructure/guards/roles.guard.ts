@@ -3,15 +3,15 @@ import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-import type { AuthUser } from '@/auth/domain';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import type { ErrorResponse } from '@/shared/infrastructure/schemas';
 import { MetadataKeys } from '@/shared/infrastructure/utils';
 import type { RoleType } from '@/src/roles/domain';
 import { PrdRolesRepository } from '@/src/roles/domain';
+import type { User } from '@/users/domain';
 
 interface RequestData {
-	user?: AuthUser;
+	user?: User;
 	url: string;
 }
 
@@ -29,15 +29,13 @@ export class RolesGuard implements CanActivate {
 		);
 		const request = context.switchToHttp().getRequest<RequestData>();
 
-		const authUser = request.user;
+		const user = request.user;
 
-		if (!authUser || !rolesAllowed) return false;
+		if (!user || !rolesAllowed) return false;
 
 		const roles = await this.db.transaction(
 			async tx =>
-				await new PrdRolesRepository(tx).findRolesByUserId(
-					authUser.userId,
-				),
+				await new PrdRolesRepository(tx).findRolesByUserId(user.userId),
 		);
 
 		const hasRole = rolesAllowed.some(roleType =>

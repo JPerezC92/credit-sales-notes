@@ -10,22 +10,22 @@ import { SessionRevalidator } from '@/auth/application';
 import type {
 	AccessTokenCipher,
 	Authorization,
-	AuthRepository,
 	RefreshTokenCipher,
 } from '@/auth/domain';
 import {
 	AccessTokenCiphrationError,
-	AuthUserNotFoundError,
 	RefreshTokenCiphrationError,
 } from '@/auth/domain/error';
 import {
 	JwtAccessTokenCipher,
 	JwtRefreshTokenCipher,
 } from '@/auth/infrastructure/services';
-import { AuthUserMother } from '@/db/mothers';
+import { UserMother } from '@/db/mothers';
 import { authorizationExpected } from '@/test/auth/domain/authorization.expected';
+import type { UsersRepository } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 
-const mockAuthRepository = mock<AuthRepository>();
+const mockUsersRepository = mock<UsersRepository>();
 const mockAccessTokenCipher = mock<AccessTokenCipher>();
 const mockRefreshTokenCipher = mock<RefreshTokenCipher>();
 
@@ -37,93 +37,96 @@ describe('SessionRevalidator Use Case', () => {
 
 	it('should return a valid token and update the user', async () => {
 		// Given a user with a token and a refresh token
-		const authUser = await AuthUserMother.create();
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		const user = await UserMother.create();
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the session is revalidated
 		const result = await SessionRevalidator(
-			mockAuthRepository,
+			mockUsersRepository,
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			new JwtRefreshTokenCipher(new JwtService(), new ConfigService()),
-		).exec(authUser.email, faker.internet.ipv4());
+		).exec(user.email, faker.internet.ipv4());
 
 		// Then the session is revalidated and the user is updated
 		expect(result).toEqual<Authorization>(authorizationExpected);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
-			authUser.email,
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
+			user.email,
 		);
-		expect(mockAuthRepository.updateAuthUser).toHaveBeenCalledTimes(1);
+		expect(mockUsersRepository.update).toHaveBeenCalledTimes(1);
 	});
 
 	it('should return an error if the user is not found', async () => {
 		// Given a user that does not exist
-		const email = (await AuthUserMother.create()).email;
+		const user = await UserMother.create();
+
 		const ip = faker.internet.ipv4();
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(null);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(null);
 
 		// When the session is revalidated
 		const error = await SessionRevalidator(
-			mockAuthRepository,
+			mockUsersRepository,
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			new JwtRefreshTokenCipher(new JwtService(), new ConfigService()),
-		).exec(email, ip);
+		).exec(user.email, ip);
 
 		// Then an error is returned and the user is not updated
-		expect(error).toBeInstanceOf(AuthUserNotFoundError);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(email);
-		expect(mockAuthRepository.updateAuthUser).not.toHaveBeenCalled();
+		expect(error).toBeInstanceOf(UserNotFoundError);
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
+			user.email,
+		);
+		expect(mockUsersRepository.update).not.toHaveBeenCalled();
 	});
 
 	it('should return an error if the access token cipher fails', async () => {
 		// Given a user with a token and a refresh token
-		const authUser = await AuthUserMother.create();
+		const user = await UserMother.create();
 		mockAccessTokenCipher.encode.mockReturnValueOnce(
 			new AccessTokenCiphrationError(),
 		);
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the session is revalidated
 		const error = await SessionRevalidator(
-			mockAuthRepository,
+			mockUsersRepository,
 			mockAccessTokenCipher,
 			mockRefreshTokenCipher,
-		).exec(authUser.email, faker.internet.ipv4());
+		).exec(user.email, faker.internet.ipv4());
 
 		// Then an error is returned and the user is not updated
 		expect(error).toBeInstanceOf(AccessTokenCiphrationError);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
-			authUser.email,
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
+			user.email,
 		);
-		expect(mockAuthRepository.updateAuthUser).not.toHaveBeenCalled();
+		expect(mockUsersRepository.update).not.toHaveBeenCalled();
 		expect(mockRefreshTokenCipher.encode).toHaveBeenCalled();
 	});
 
 	it('should return an error if the refresh token cipher fails', async () => {
 		// Given a user with a token and a refresh token
-		const authUser = await AuthUserMother.create();
+		const user = await UserMother.create();
 
 		mockRefreshTokenCipher.encode.mockReturnValueOnce(
 			new RefreshTokenCiphrationError(),
 		);
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the session is revalidated
 		const error = await SessionRevalidator(
-			mockAuthRepository,
+			mockUsersRepository,
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			mockRefreshTokenCipher,
-		).exec(authUser.email, faker.internet.ipv4());
+		).exec(user.email, faker.internet.ipv4());
 
 		// Then an error is returned and the user is not updated
 		expect(error).toBeInstanceOf(RefreshTokenCiphrationError);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
-			authUser.email,
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
+			user.email,
 		);
-		expect(mockAuthRepository.updateAuthUser).not.toHaveBeenCalled();
+		expect(mockUsersRepository.update).not.toHaveBeenCalled();
 		expect(mockRefreshTokenCipher.encode).toHaveBeenCalledTimes(1);
 		expect(mockAccessTokenCipher.encode).not.toHaveBeenCalled();
 	});

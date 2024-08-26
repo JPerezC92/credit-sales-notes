@@ -9,7 +9,6 @@ import { mock } from 'jest-mock-extended';
 import { Authenticathor } from '@/auth/application';
 import type {
 	AccessTokenCipher,
-	AuthRepository,
 	PasswordCipher,
 	RefreshTokenCipher,
 } from '@/auth/domain';
@@ -23,9 +22,10 @@ import {
 	JwtAccessTokenCipher,
 	JwtRefreshTokenCipher,
 } from '@/auth/infrastructure/services';
-import { AuthUserMother, CredentialsMother } from '@/db/mothers';
+import { CredentialsMother, UserMother } from '@/db/mothers';
+import type { UsersRepository } from '@/users/domain';
 
-const mockAuthRepository = mock<AuthRepository>();
+const mockUsersRepository = mock<UsersRepository>();
 
 describe('Authenticathor Use Case', () => {
 	beforeEach(() => {
@@ -37,19 +37,19 @@ describe('Authenticathor Use Case', () => {
 		// Given the user is found and the password is correct
 		const ip = faker.internet.ipv4();
 		const credentials = CredentialsMother.create();
-		const authUser = await AuthUserMother.create({
+		const user = await UserMother.create({
 			email: credentials.email,
 			password: credentials.password,
 		});
 
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the user tries to authenticate
 		const result = await Authenticathor(
 			new BcryptPasswordCipher(),
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			new JwtRefreshTokenCipher(new JwtService(), new ConfigService()),
-			mockAuthRepository,
+			mockUsersRepository,
 		).exec(credentials, ip);
 
 		// Then an access token and a refresh token are returned
@@ -62,15 +62,15 @@ describe('Authenticathor Use Case', () => {
 				type: 'Bearer',
 			}),
 		});
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
 			credentials.email,
 		);
 	});
 
 	it('should return an error if the user is not found', async () => {
 		// Given the user is not found and the password is correct
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(null);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(null);
 		const mockPasswordCipher = mock<PasswordCipher>();
 		mockPasswordCipher.compare.mockResolvedValueOnce(true);
 
@@ -82,7 +82,7 @@ describe('Authenticathor Use Case', () => {
 			mockPasswordCipher,
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			new JwtRefreshTokenCipher(new JwtService(), new ConfigService()),
-			mockAuthRepository,
+			mockUsersRepository,
 		).exec(credentials, ip);
 
 		// Then an error is returned and the password is not compared
@@ -94,34 +94,34 @@ describe('Authenticathor Use Case', () => {
 		// Given the user is found and the password is not correct
 		const ip = faker.internet.ipv4();
 		const credentials = CredentialsMother.create();
-		const authUser = await AuthUserMother.create({
+		const user = await UserMother.create({
 			email: credentials.email,
 			password: faker.internet.password(),
 		});
 
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the user tries to authenticate
 		const error = await Authenticathor(
 			new BcryptPasswordCipher(),
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			new JwtRefreshTokenCipher(new JwtService(), new ConfigService()),
-			mockAuthRepository,
+			mockUsersRepository,
 		).exec(credentials, ip);
 
 		// Then an error is returned and the user is not updated
 		expect(error).toBeInstanceOf(InvalidCredentialsError);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
 			credentials.email,
 		);
-		expect(mockAuthRepository.updateAuthUser).not.toHaveBeenCalled();
+		expect(mockUsersRepository.update).not.toHaveBeenCalled();
 	});
 
 	it('should return an error if the access token cipher fails', async () => {
 		// Given the user is found and the password is correct
 		const ip = faker.internet.ipv4();
 		const credentials = CredentialsMother.create();
-		const authUser = await AuthUserMother.create({
+		const user = await UserMother.create({
 			email: credentials.email,
 			password: credentials.password,
 		});
@@ -130,14 +130,14 @@ describe('Authenticathor Use Case', () => {
 			new AccessTokenCiphrationError(),
 		);
 
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the user tries to authenticate
 		const error = await Authenticathor(
 			new BcryptPasswordCipher(),
 			mockAccessTokenCipher,
 			new JwtRefreshTokenCipher(new JwtService(), new ConfigService()),
-			mockAuthRepository,
+			mockUsersRepository,
 		).exec(credentials, ip);
 
 		// Then an error is returned
@@ -148,7 +148,7 @@ describe('Authenticathor Use Case', () => {
 		// Given the user is found and the password is correct
 		const ip = faker.internet.ipv4();
 		const credentials = CredentialsMother.create();
-		const authUser = await AuthUserMother.create({
+		const user = await UserMother.create({
 			email: credentials.email,
 			password: credentials.password,
 		});
@@ -157,21 +157,21 @@ describe('Authenticathor Use Case', () => {
 			new RefreshTokenCiphrationError(),
 		);
 
-		mockAuthRepository.findUserByEmail.mockResolvedValueOnce(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
 		// When the user tries to authenticate
 		const error = await Authenticathor(
 			new BcryptPasswordCipher(),
 			new JwtAccessTokenCipher(new JwtService(), new ConfigService()),
 			mockRefreshTokenCipher,
-			mockAuthRepository,
+			mockUsersRepository,
 		).exec(credentials, ip);
 
 		// Then an error is returned and the user is not updated
 		expect(error).toBeInstanceOf(RefreshTokenCiphrationError);
-		expect(mockAuthRepository.findUserByEmail).toHaveBeenCalledWith(
+		expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(
 			credentials.email,
 		);
-		expect(mockAuthRepository.updateAuthUser).not.toHaveBeenCalled();
+		expect(mockUsersRepository.update).not.toHaveBeenCalled();
 	});
 });

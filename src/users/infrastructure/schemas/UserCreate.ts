@@ -9,7 +9,7 @@ export const UserCreate = extendApi(
 		lastNameOne: z.string().min(1).max(50),
 		lastNameTwo: z.string().max(50).trim().default(''),
 		email: z.string().email().min(1).max(150).trim(),
-		password: z.string().min(1).max(50).trim(),
+		password: z.string().min(6).max(50).trim(),
 	}),
 	{
 		title: 'UserCreate',

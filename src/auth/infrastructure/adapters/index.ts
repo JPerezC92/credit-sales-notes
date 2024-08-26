@@ -1,2 +1,1 @@
-export * from './authUserDbToDomain.adapter';
-export * from './authUserDomainToDb.adapter';
+export * from './userDomainToDb.adapter';

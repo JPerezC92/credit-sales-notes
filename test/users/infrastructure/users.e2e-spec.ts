@@ -10,7 +10,6 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 
-import { PrdAuthRepository } from '@/auth/infrastructure/services';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ActionType } from '@/src/actions/domain';
@@ -21,6 +20,7 @@ import { TestUserRepository } from '@/test/users/infrastructure/utils';
 import { config } from '@/test/users/infrastructure/utils/config';
 import type { User } from '@/users/domain';
 import { UserEmailAlreadyRegisteredError } from '@/users/domain/error';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 import type {
 	UserCreateDto,
 	UserEndpointDto,
@@ -122,12 +122,19 @@ describe('UsersController (e2e)', () => {
 			});
 	});
 
-	it('should return a conflict error when trying to create a user with an existing email', async () => {
-		// Given authenticated as an admin
+	it('should return a forbidden error when trying to create a user without a write action', async () => {
+		// Given authenticated as an user without a write action
+		const user =
+			await new TestUserRepository().findOrCreateUserWithRoleAndAction(
+				RoleType.ADMIN,
+				ActionType.VIEW,
+			);
+		const newUser = userCreateDtoMother.create();
+
 		const response = await request(app.getHttpServer() as App)
 			.post('/api/v1/auth')
 			.send({
-				email: adminUser.email,
+				email: user.email,
 				password: config.defaultTestUserPassword,
 			});
 
@@ -136,13 +143,13 @@ describe('UsersController (e2e)', () => {
 			.post('/api/v1/users')
 			.set('Authorization', `Bearer ${response.body.accessToken.value}`)
 			.send(newUser)
-			.expect(HttpStatus.CONFLICT)
+			.expect(HttpStatus.FORBIDDEN)
 			.then(response => {
 				// Then a conflict error should be returned
+
 				expect(response.body).toEqual(
 					ErrorResponseExpected.create({
-						statusCode: HttpStatus.CONFLICT,
-						error: UserEmailAlreadyRegisteredError.code,
+						statusCode: HttpStatus.FORBIDDEN,
 					}),
 				);
 			});
@@ -183,10 +190,9 @@ describe('UsersController (e2e)', () => {
 				password: config.defaultTestUserPassword,
 			});
 
-		jest.spyOn(
-			PrdAuthRepository.prototype,
-			'saveAuthUser',
-		).mockRejectedValueOnce(new RepositoryError('Test Error'));
+		jest.spyOn(PrdUserRepository.prototype, 'save').mockRejectedValueOnce(
+			new RepositoryError('Test Error'),
+		);
 
 		// When attempting to create a new user with an existing email
 		await request(app.getHttpServer() as App)

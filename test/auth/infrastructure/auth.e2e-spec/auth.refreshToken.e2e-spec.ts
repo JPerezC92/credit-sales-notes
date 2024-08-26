@@ -10,7 +10,6 @@ import supertest from 'supertest';
 import type { App } from 'supertest/types';
 
 import { AuthModule } from '@/auth/infrastructure/auth.module';
-import { PrdAuthRepository } from '@/auth/infrastructure/services';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ActionType } from '@/src/actions/domain';
@@ -19,6 +18,7 @@ import { authorizationExpected } from '@/test/auth/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
 import type { User } from '@/users/domain';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
@@ -96,8 +96,8 @@ describe('AuthController (e2e)', () => {
 
 		// Mock the AuthRepository's findUserByEmail method to throw an error
 		jest.spyOn(
-			PrdAuthRepository.prototype,
-			'findUserByEmail',
+			PrdUserRepository.prototype,
+			'findByEmail',
 		).mockRejectedValue(new RepositoryError('Test Error'));
 
 		// When the refreshToken is used

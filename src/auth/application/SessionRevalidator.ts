@@ -1,30 +1,26 @@
-import type {
-	AccessTokenCipher,
-	AuthRepository,
-	AuthUser,
-	RefreshTokenCipher,
-} from '@/auth/domain';
+import type { AccessTokenCipher, RefreshTokenCipher } from '@/auth/domain';
 import { TokensGeneratorService } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain/error';
+import type { User, UsersRepository } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 
 export function SessionRevalidator(
-	authRepository: AuthRepository,
+	usersRepository: UsersRepository,
 	accesTokenCipher: AccessTokenCipher,
 	refreshTokenCipher: RefreshTokenCipher,
 ) {
 	return {
-		exec: async (email: AuthUser['email'], ip: string) => {
-			const _authUser = await authRepository.findUserByEmail(email);
+		exec: async (email: User['email'], ip: string) => {
+			const user = await usersRepository.findByEmail(email);
 
-			if (!_authUser) {
-				return new AuthUserNotFoundError();
+			if (!user) {
+				return new UserNotFoundError();
 			}
 
 			return await TokensGeneratorService(
 				accesTokenCipher,
 				refreshTokenCipher,
-				authRepository,
-				_authUser,
+				usersRepository,
+				user,
 				ip,
 			);
 		},

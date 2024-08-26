@@ -1,10 +1,11 @@
-import type { AuthUser, PasswordCipher } from '@/auth/domain';
+import type { PasswordCipher } from '@/auth/domain';
+import type { User } from '@/users/domain';
 
 import type { Credentials } from './credentials.model';
 
 export async function PasswordVerifierService(
 	credentials: Credentials,
-	user: AuthUser,
+	user: User,
 	passwordCipher: PasswordCipher,
 ): Promise<boolean> {
 	const isPasswordCorrect = await passwordCipher.compare(

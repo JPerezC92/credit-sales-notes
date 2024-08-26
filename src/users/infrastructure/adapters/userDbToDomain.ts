@@ -12,6 +12,8 @@ export function userDbToDomain(
 		firstNameTwo: user.firstNameTwo ?? '',
 		lastNameOne: user.lastNameOne,
 		lastNameTwo: user.lastNameTwo ?? '',
+		password: user.password,
+		token: new Map(Object.entries(user.token)),
 		email: user.email,
 		createdAt: user.createdAt,
 		modifiedAt: user.modifiedAt,

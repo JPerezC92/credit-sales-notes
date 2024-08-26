@@ -7,11 +7,11 @@ import { faker } from '@faker-js/faker';
 import { mock } from 'jest-mock-extended';
 
 import { SessionCloser } from '@/auth/application';
-import type { AuthRepository } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain/error';
-import { AuthUserMother } from '@/db/mothers';
+import { UserMother } from '@/db/mothers';
+import type { UsersRepository } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 
-const mockAuthRepository = mock<AuthRepository>();
+const mockUsersRepository = mock<UsersRepository>();
 
 describe('SessionCloser Use Case', () => {
 	beforeEach(() => {
@@ -23,46 +23,36 @@ describe('SessionCloser Use Case', () => {
 		// Given a user with a token
 		const ip = faker.internet.ipv4();
 		const tokenId = crypto.randomUUID();
-		const authUser = await AuthUserMother.create({
+		const user = await UserMother.create({
 			token: new Map([[ip, tokenId]]),
 		});
 
-		mockAuthRepository.findUserByEmail.mockResolvedValue(authUser);
+		mockUsersRepository.findByEmail.mockResolvedValue(user);
 
 		// When the session is closed
-		const result = await SessionCloser(mockAuthRepository).exec(
-			authUser,
-			ip,
-		);
+		const result = await SessionCloser(mockUsersRepository).exec(user, ip);
 
 		// Then the session is closed and the user is updated
 		expect(result).toBeUndefined();
-		expect(mockAuthRepository.findUserByEmail).toBeCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toBeCalledWith(
-			authUser.email,
-		);
-		expect(mockAuthRepository.updateAuthUser).toBeCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toBeCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toBeCalledWith(user.email);
+		expect(mockUsersRepository.update).toBeCalledTimes(1);
 	});
 
 	it('should return an error when the user does not exist', async () => {
 		// Given a user that does not exist
 		const ip = faker.internet.ipv4();
-		const authUser = await AuthUserMother.create();
+		const user = await UserMother.create();
 
-		mockAuthRepository.findUserByEmail.mockResolvedValue(null);
+		mockUsersRepository.findByEmail.mockResolvedValue(null);
 
 		// When the session is closed
-		const error = await SessionCloser(mockAuthRepository).exec(
-			authUser,
-			ip,
-		);
+		const error = await SessionCloser(mockUsersRepository).exec(user, ip);
 
 		// Then an error is returned and the user is not updated
-		expect(error).toBeInstanceOf(AuthUserNotFoundError);
-		expect(mockAuthRepository.findUserByEmail).toBeCalledTimes(1);
-		expect(mockAuthRepository.findUserByEmail).toBeCalledWith(
-			authUser.email,
-		);
-		expect(mockAuthRepository.updateAuthUser).not.toBeCalled();
+		expect(error).toBeInstanceOf(UserNotFoundError);
+		expect(mockUsersRepository.findByEmail).toBeCalledTimes(1);
+		expect(mockUsersRepository.findByEmail).toBeCalledWith(user.email);
+		expect(mockUsersRepository.update).not.toBeCalled();
 	});
 });
