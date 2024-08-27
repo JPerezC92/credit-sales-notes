@@ -1,12 +1,11 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, ne, sql } from 'drizzle-orm';
 
-import { authUserDomainToDbAdapter } from '@/auth/infrastructure/adapters';
-import { AuthUserMother, UserMother } from '@/db/mothers';
+import { userDomainToDbAdapter } from '@/auth/infrastructure/adapters';
+import { UserMother } from '@/db/mothers';
 import * as dbSchemas from '@/db/schemas';
 import { db } from '@/db/utils/db';
 import type { ActionType } from '@/src/actions/domain';
 import { type RoleType } from '@/src/roles/domain';
-import { config } from '@/test/users/infrastructure/utils';
 import type { User } from '@/users/domain';
 import { userDbToDomain } from '@/users/infrastructure/adapters';
 
@@ -49,6 +48,7 @@ export class TestUserRepository {
 						dbSchemas.userDbToActionDb.actionId,
 					),
 					eq(dbSchemas.actionDb.name, actionName),
+					ne(dbSchemas.actionDb.name, actionName),
 				),
 			)
 			.limit(1)
@@ -76,17 +76,11 @@ export class TestUserRepository {
 			return userDbToDomain(user, roles, actions);
 		}
 
-		const newUser = UserMother.create();
-		const newAuthUser = await AuthUserMother.create({
-			email: newUser.email,
-			password: config.defaultTestUserPassword,
-			userId: newUser.userId,
-		});
-		await db.insert(dbSchemas.userDb).values(newUser);
+		const newUser = await UserMother.create();
+
 		await db
-			.insert(dbSchemas.authUserDb)
-			.values(authUserDomainToDbAdapter(newAuthUser))
-			.execute();
+			.insert(dbSchemas.userDb)
+			.values(userDomainToDbAdapter(newUser));
 
 		const roles = await db
 			.select({
@@ -109,5 +103,25 @@ export class TestUserRepository {
 		await db.insert(dbSchemas.userDbToActionDb).values(actions).execute();
 
 		return newUser;
+	}
+
+	async findActionByUserId(userId: string) {
+		return await db
+			.select()
+			.from(dbSchemas.userDbToActionDb)
+			// .innerJoin(
+			// 	dbSchemas.userDbToActionDb,
+			// 	eq(dbSchemas.userDbToActionDb.userId, dbSchemas.userDb.userId),
+			// )
+			.innerJoin(
+				dbSchemas.actionDb,
+				and(
+					eq(
+						dbSchemas.actionDb.actionId,
+						dbSchemas.userDbToActionDb.actionId,
+					),
+				),
+			)
+			.where(eq(dbSchemas.userDbToActionDb.userId, userId));
 	}
 }

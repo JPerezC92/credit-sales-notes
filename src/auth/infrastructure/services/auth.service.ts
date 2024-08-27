@@ -12,10 +12,8 @@ import {
 	SessionRevalidator,
 } from '@/auth/application';
 import { UserInfo } from '@/auth/application/UserInfo';
-import type { AuthUser } from '@/auth/domain';
 import {
 	AccessTokenCiphrationError,
-	AuthUserNotFoundError,
 	InvalidCredentialsError,
 	RefreshTokenCiphrationError,
 } from '@/auth/domain/error';
@@ -23,13 +21,13 @@ import type * as authSchemas from '@/auth/infrastructure/schemas';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import { DomainError } from '@/shared/domain';
 import { ExceptionMapper } from '@/shared/infrastructure/errors';
+import type { User } from '@/users/domain';
 import { UserNotFoundError } from '@/users/domain/error';
 import { userModelToEndpoint } from '@/users/infrastructure/adapters';
-import { prdUserRepository } from '@/users/infrastructure/repositories';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 
 import { JwtAccessTokenCipher } from './accessToken.cipher';
 import { BcryptPasswordCipher } from './bcryptPassword.cipher';
-import { PrdAuthRepository } from './prdAuth.repository';
 import { JwtRefreshTokenCipher } from './refreshToken.cipher';
 
 @Injectable()
@@ -49,7 +47,7 @@ export class AuthService {
 					this.passwordCipher,
 					this.accessTokenCipher,
 					this.refreshTokenCipher,
-					new PrdAuthRepository(tx),
+					new PrdUserRepository(tx),
 				).exec(createAuthDto, ip),
 		);
 
@@ -68,14 +66,13 @@ export class AuthService {
 		throw httpError();
 	}
 
-	async me(user: AuthUser) {
+	async me(email: User['email']) {
 		const result = await this.db.transaction(
 			async tx =>
 				await UserInfo(
-					new PrdAuthRepository(tx),
-					prdUserRepository(tx),
+					new PrdUserRepository(tx),
 					userModelToEndpoint,
-				).exec(user.email),
+				).exec(email),
 		);
 
 		if (!DomainError.isInstance(result)) return result;
@@ -83,7 +80,6 @@ export class AuthService {
 		const httpError = this.exceptionMapper.mapDomainErrorToHttpException(
 			result,
 			{
-				[AuthUserNotFoundError.code]: NotFoundException,
 				[UserNotFoundError.code]: NotFoundException,
 			},
 		);
@@ -91,14 +87,14 @@ export class AuthService {
 		throw httpError();
 	}
 
-	async refreshToken(authUser: AuthUser, ip: string) {
+	async refreshToken(email: User['email'], ip: string) {
 		const result = await this.db.transaction(
 			async tx =>
 				await SessionRevalidator(
-					new PrdAuthRepository(tx),
+					new PrdUserRepository(tx),
 					this.accessTokenCipher,
 					this.refreshTokenCipher,
-				).exec(authUser.email, ip),
+				).exec(email, ip),
 		);
 
 		if (!DomainError.isInstance(result)) return result;
@@ -109,17 +105,17 @@ export class AuthService {
 				[AccessTokenCiphrationError.code]: InternalServerErrorException,
 				[RefreshTokenCiphrationError.code]:
 					InternalServerErrorException,
-				[AuthUserNotFoundError.code]: NotFoundException,
+				[UserNotFoundError.code]: NotFoundException,
 			},
 		);
 
 		throw httpError();
 	}
 
-	async logout(authUser: AuthUser, ip: string) {
+	async logout(authUser: User, ip: string) {
 		const result = await this.db.transaction(
 			async tx =>
-				await SessionCloser(new PrdAuthRepository(tx)).exec(
+				await SessionCloser(new PrdUserRepository(tx)).exec(
 					authUser,
 					ip,
 				),
@@ -130,7 +126,7 @@ export class AuthService {
 		const httpError = this.exceptionMapper.mapDomainErrorToHttpException(
 			result,
 			{
-				[AuthUserNotFoundError.code]: NotFoundException,
+				[UserNotFoundError.code]: NotFoundException,
 			},
 		);
 

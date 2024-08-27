@@ -2,13 +2,13 @@ import type { ExecutionContext } from '@nestjs/common';
 import { BadRequestException, createParamDecorator } from '@nestjs/common';
 import type { Request } from 'express';
 
-import { AuthUser } from '@/auth/domain';
+import { User } from '@/users/domain';
 
 export const UserFromReq = createParamDecorator(
-	(_data: unknown, ctx: ExecutionContext): AuthUser => {
+	(_data: unknown, ctx: ExecutionContext): User => {
 		const request = ctx.switchToHttp().getRequest<Request>();
 
-		if (!AuthUser.isInstance(request.user)) throw new BadRequestException();
+		if (!User.isInstance(request.user)) throw new BadRequestException();
 
 		return request.user;
 	},

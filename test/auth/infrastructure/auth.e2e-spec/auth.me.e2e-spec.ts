@@ -8,10 +8,8 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import supertest from 'supertest';
 import type { App } from 'supertest/types';
 
-import { AuthUserNotFoundError } from '@/auth/domain/error';
 import { AuthModule } from '@/auth/infrastructure/auth.module';
-import { PrdAuthRepository } from '@/auth/infrastructure/services';
-import { authUser1 } from '@/db/seeders';
+import { userTest1 } from '@/db/seeders';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ActionType } from '@/src/actions/domain';
@@ -19,6 +17,8 @@ import { RoleType } from '@/src/roles/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
 import type { User } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 import type { UserEndpointDto } from '@/users/infrastructure/schemas';
 
 describe('AuthController (e2e)', () => {
@@ -108,8 +108,8 @@ describe('AuthController (e2e)', () => {
 				password: config.defaultTestUserPassword,
 			});
 
-		jest.spyOn(PrdAuthRepository.prototype, 'findUserByEmail')
-			.mockResolvedValueOnce(authUser1)
+		jest.spyOn(PrdUserRepository.prototype, 'findByEmail')
+			.mockResolvedValueOnce(await userTest1)
 			.mockResolvedValueOnce(null);
 
 		// When making a request to the me endpoint and the user is not found
@@ -122,7 +122,7 @@ describe('AuthController (e2e)', () => {
 				expect(response.body).toEqual(
 					ErrorResponseExpected.create({
 						statusCode: HttpStatus.NOT_FOUND,
-						error: AuthUserNotFoundError.code,
+						error: UserNotFoundError.code,
 					}),
 				);
 			});
@@ -140,8 +140,8 @@ describe('AuthController (e2e)', () => {
 			});
 
 		jest.spyOn(
-			PrdAuthRepository.prototype,
-			'findUserByEmail',
+			PrdUserRepository.prototype,
+			'findByEmail',
 		).mockRejectedValueOnce(new RepositoryError('Test Error'));
 
 		// When making a request to the me endpoint and a RepositoryError is thrown

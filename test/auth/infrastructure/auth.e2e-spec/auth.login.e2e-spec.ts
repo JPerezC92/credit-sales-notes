@@ -18,7 +18,6 @@ import { AuthModule } from '@/auth/infrastructure/auth.module';
 import {
 	JwtAccessTokenCipher,
 	JwtRefreshTokenCipher,
-	PrdAuthRepository,
 } from '@/auth/infrastructure/services';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
@@ -29,6 +28,7 @@ import { badRequestErrorExpected } from '@/test/auth/infrastructure/fixtures';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
 import type { User } from '@/users/domain';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
@@ -156,8 +156,8 @@ describe('AuthController (e2e)', () => {
 
 	it('should return 500 Internal Server Error when an RepositoryError is thrown', async () => {
 		jest.spyOn(
-			PrdAuthRepository.prototype,
-			'findUserByEmail',
+			PrdUserRepository.prototype,
+			'findByEmail',
 		).mockRejectedValueOnce(new RepositoryError('Test Error'));
 
 		// When the repository throws an error

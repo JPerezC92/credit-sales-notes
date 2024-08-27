@@ -44,6 +44,7 @@ export class UsersController {
 	})
 	@UseFilters(RepositoryExceptionFilter)
 	async register(@Body() userCreateDto: userSchemas.UserCreateDto) {
+		// console.log('userCreateDto', userCreateDto);
 		return await this.usersService.create(userCreateDto);
 	}
 }

@@ -9,7 +9,6 @@ import supertest from 'supertest';
 import type { App } from 'supertest/types';
 
 import { AuthModule } from '@/auth/infrastructure/auth.module';
-import { PrdAuthRepository } from '@/auth/infrastructure/services';
 import { RepositoryError } from '@/shared/domain';
 import { versioningConfig } from '@/shared/infrastructure/utils';
 import { ActionType } from '@/src/actions/domain';
@@ -17,6 +16,7 @@ import { RoleType } from '@/src/roles/domain';
 import { ErrorResponseExpected } from '@/test/shared/infrastructure/fixtures';
 import { config, TestUserRepository } from '@/test/users/infrastructure/utils';
 import type { User } from '@/users/domain';
+import { PrdUserRepository } from '@/users/infrastructure/repositories';
 
 describe('AuthController (e2e)', () => {
 	let app: INestApplication;
@@ -88,10 +88,9 @@ describe('AuthController (e2e)', () => {
 			});
 
 		// Mock the AuthRepository to throw an error
-		jest.spyOn(
-			PrdAuthRepository.prototype,
-			'updateAuthUser',
-		).mockRejectedValueOnce(new RepositoryError("Can't save the AuthUser"));
+		jest.spyOn(PrdUserRepository.prototype, 'update').mockRejectedValueOnce(
+			new RepositoryError("Can't save the AuthUser"),
+		);
 
 		// When the accessToken is used to logout
 		const response = await supertest(app.getHttpServer() as App)

@@ -4,12 +4,13 @@ import { PassportStrategy } from '@nestjs/passport';
 import IP from 'ip';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import type { AuthUser, RefreshPayload } from '@/auth/domain';
-import { authUserDbToDomainAdapter } from '@/auth/infrastructure/adapters';
+import type { RefreshPayload } from '@/auth/domain';
 import * as authSchemas from '@/auth/infrastructure/schemas';
 import { DrizzleClient, DrizzleClientToken } from '@/db/services';
 import type { EnvVariables } from '@/shared/infrastructure/utils';
 import { EnvVariablesEnum } from '@/shared/infrastructure/utils';
+import type { User } from '@/users/domain';
+import { userDbToDomain } from '@/users/infrastructure/adapters';
 
 export const refreshTokenStrategy = 'RefreshTokenStrategy';
 
@@ -32,7 +33,7 @@ export class RefreshJwtStrategy extends PassportStrategy(
 		});
 	}
 
-	async validate(payload: RefreshPayload): Promise<AuthUser> {
+	async validate(payload: RefreshPayload): Promise<User> {
 		const payloadValidation = authSchemas.refreshPayload.safeParse(payload);
 
 		if (!payloadValidation.success) {
@@ -44,23 +45,27 @@ export class RefreshJwtStrategy extends PassportStrategy(
 		const result = await this.db.query.userDb.findFirst({
 			where: (users, { eq }) =>
 				eq(users.email, payloadValidation.data.email),
-			with: { authUser: true },
+			with: {
+				userToAction: true,
+				userToRole: true,
+			},
 		});
 
-		if (!result?.authUser) {
+		if (!result) {
 			throw new UnauthorizedException();
 		}
 
-		const authUser = authUserDbToDomainAdapter(
-			result.authUser,
-			result.email,
+		const user = userDbToDomain(
+			result,
+			result.userToRole.map(({ roleId }) => roleId),
+			result.userToAction.map(({ actionId }) => actionId),
 		);
 		const ip = IP.address();
 
-		if (authUser.token.get(ip) !== payloadValidated.tokenId) {
+		if (user.token.get(ip) !== payloadValidated.tokenId) {
 			throw new UnauthorizedException();
 		}
 
-		return authUser;
+		return user;
 	}
 }

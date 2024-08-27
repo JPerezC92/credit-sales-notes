@@ -24,7 +24,6 @@ import {
 } from '@nestjs/swagger';
 import IP from 'ip';
 
-import { AuthUser } from '@/auth/domain';
 import { UserFromReq } from '@/auth/infrastructure/decorators';
 import {
 	AccessJwtAuthGuard,
@@ -34,6 +33,7 @@ import * as authSchemas from '@/auth/infrastructure/schemas';
 import { AuthService } from '@/auth/infrastructure/services';
 import { RepositoryExceptionFilter } from '@/shared/infrastructure/filters';
 import * as sharedSchemas from '@/shared/infrastructure/schemas';
+import { User } from '@/users/domain';
 import * as userSchemas from '@/users/infrastructure/schemas';
 
 @Controller('auth')
@@ -72,10 +72,8 @@ export class AuthController {
 	@ApiNotFoundResponse({
 		type: sharedSchemas.NotFound,
 	})
-	async me(
-		@UserFromReq() user: AuthUser,
-	): Promise<userSchemas.UserEndpointDto> {
-		return await this.authService.me(user);
+	async me(@UserFromReq() user: User): Promise<userSchemas.UserEndpointDto> {
+		return await this.authService.me(user.email);
 	}
 
 	@Get('refresh-token')
@@ -93,9 +91,9 @@ export class AuthController {
 		type: sharedSchemas.NotFound,
 	})
 	async refreshToken(
-		@UserFromReq() authUser: AuthUser,
+		@UserFromReq() user: User,
 	): Promise<authSchemas.AuthorizationDto> {
-		return await this.authService.refreshToken(authUser, IP.address());
+		return await this.authService.refreshToken(user.email, IP.address());
 	}
 
 	@Delete('logout')
@@ -111,7 +109,7 @@ export class AuthController {
 		type: sharedSchemas.NotFound,
 	})
 	@ApiBearerAuth()
-	async logout(@UserFromReq() user: AuthUser): Promise<void> {
+	async logout(@UserFromReq() user: User): Promise<void> {
 		await this.authService.logout(user, IP.address());
 	}
 }

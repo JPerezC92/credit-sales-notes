@@ -1,20 +1,18 @@
-import type { AuthRepository, AuthUser } from '@/auth/domain';
-import { AuthUserNotFoundError } from '@/auth/domain/error';
+import type { User, UsersRepository } from '@/users/domain';
+import { UserNotFoundError } from '@/users/domain/error';
 
-export function SessionCloser(authRepository: AuthRepository) {
+export function SessionCloser(authRepository: UsersRepository) {
 	return {
-		exec: async (authUser: AuthUser, ip: string) => {
-			const _authUser = await authRepository.findUserByEmail(
-				authUser.email,
-			);
+		exec: async (authUser: User, ip: string) => {
+			const user = await authRepository.findByEmail(authUser.email);
 
-			if (!_authUser) {
-				return new AuthUserNotFoundError();
+			if (!user) {
+				return new UserNotFoundError();
 			}
 
-			const updatedAuthUser = _authUser.removeToken(ip);
+			const userUpdated = user.removeToken(ip);
 
-			await authRepository.updateAuthUser(updatedAuthUser);
+			await authRepository.update(userUpdated);
 		},
 	};
 }

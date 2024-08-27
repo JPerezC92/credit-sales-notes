@@ -1,22 +1,22 @@
 import type {
 	AccessTokenCipher,
-	AuthRepository,
 	Credentials,
 	PasswordCipher,
 	RefreshTokenCipher,
 } from '@/auth/domain';
 import { PasswordVerifierService, TokensGeneratorService } from '@/auth/domain';
 import { InvalidCredentialsError } from '@/auth/domain/error';
+import type { UsersRepository } from '@/users/domain';
 
 export function Authenticathor(
 	passwordCipher: PasswordCipher,
 	accessTokenCipher: AccessTokenCipher,
 	refreshTokenCipher: RefreshTokenCipher,
-	authRepository: AuthRepository,
+	usersRepository: UsersRepository,
 ) {
 	return {
 		exec: async (credentials: Credentials, ip: string) => {
-			const userFound = await authRepository.findUserByEmail(
+			const userFound = await usersRepository.findByEmail(
 				credentials.email,
 			);
 
@@ -37,7 +37,7 @@ export function Authenticathor(
 			return await TokensGeneratorService(
 				accessTokenCipher,
 				refreshTokenCipher,
-				authRepository,
+				usersRepository,
 				userFound,
 				ip,
 			);

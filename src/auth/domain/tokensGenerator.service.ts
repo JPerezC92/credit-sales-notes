@@ -1,28 +1,25 @@
 import * as crypto from 'node:crypto';
 
-import type {
-	AccessTokenCipher,
-	AuthRepository,
-	RefreshTokenCipher,
-} from '@/auth/domain';
-import { AuthUser } from '@/auth/domain';
+import type { AccessTokenCipher, RefreshTokenCipher } from '@/auth/domain';
 import {
 	AccessTokenCiphrationError,
 	RefreshTokenCiphrationError,
 } from '@/auth/domain/error';
 import { BearerToken, TypelessToken } from '@/auth/domain/token.model';
+import type { UsersRepository } from '@/users/domain';
+import { User } from '@/users/domain';
 
 import { Authorization } from './authorization';
 
 export async function TokensGeneratorService(
 	accessTokenCipher: AccessTokenCipher,
 	refreshTokenCipher: RefreshTokenCipher,
-	authRepository: AuthRepository,
-	user: AuthUser,
+	usersRepository: UsersRepository,
+	user: User,
 	ip: string,
 ) {
 	const tokenId = crypto.randomUUID();
-	const _authUser = new AuthUser(structuredClone(user)).addToken(ip, tokenId);
+	const _authUser = new User(structuredClone(user)).addToken(ip, tokenId);
 
 	const refreshToken = refreshTokenCipher.encode({
 		email: _authUser.email,
@@ -42,7 +39,7 @@ export async function TokensGeneratorService(
 		return accessToken;
 	}
 
-	await authRepository.updateAuthUser(_authUser);
+	await usersRepository.update(_authUser);
 
 	return new Authorization({
 		refreshToken: new TypelessToken(refreshToken),
